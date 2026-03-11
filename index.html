@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScanQC — Scanner & Radio Communications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
+<style>
+  :root {
+    --black:#080c0a;--deep:#0a1210;--panel:#0f1a16;--card:#121f1a;--border:#1e3028;
+    --green:#00ff88;--green-dim:#00c866;--green-faint:rgba(0,255,136,0.07);--green-glow:rgba(0,255,136,0.18);
+    --amber:#ffaa00;--amber-dim:#cc8800;--red:#ff3344;--cyan:#00e5ff;
+    --text:#c8ddd5;--text-dim:#6a8a7a;
+    --mono:'Share Tech Mono',monospace;--cond:'Barlow Condensed',sans-serif;--body:'Barlow',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--black);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:9999}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,12,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;gap:1rem}
+  .nav-logo{font-family:var(--mono);color:var(--green);font-size:1.1rem;letter-spacing:0.1em;text-decoration:none;display:flex;align-items:center;gap:0.6rem;flex-shrink:0}
+  .nav-logo::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green),0 0 20px var(--green-glow);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
+  .nav-center{display:flex;gap:0.25rem;list-style:none;flex:1;justify-content:center}
+  .nav-center a{font-family:var(--cond);font-weight:600;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;padding:0.4rem 0.9rem;border:1px solid transparent;border-radius:2px;transition:all 0.2s}
+  .nav-center a:hover,.nav-center a.active{color:var(--green);border-color:var(--border);background:var(--green-faint)}
+  .lang-toggle{display:flex;border:1px solid var(--border);flex-shrink:0}
+  .lang-btn{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;padding:0.3rem 0.7rem;background:transparent;border:none;color:var(--text-dim);cursor:pointer;transition:all 0.2s;text-transform:uppercase}
+  .lang-btn.active{background:var(--green);color:var(--black);font-weight:bold}
+  .lang-btn:not(.active):hover{color:var(--green);background:var(--green-faint)}
+
+  /* HERO */
+  #home{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:6rem 4rem 4rem;position:relative;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 80% 50%,rgba(0,255,136,0.04) 0%,transparent 70%),radial-gradient(ellipse 30% 40% at 20% 80%,rgba(0,229,255,0.03) 0%,transparent 60%)}
+  .waveform{position:absolute;right:5%;top:50%;transform:translateY(-50%);width:38%;height:200px;opacity:0.25}
+  .waveform svg{width:100%;height:100%}
+  .hero-tag{font-family:var(--mono);font-size:0.72rem;color:var(--green);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:0.8rem}
+  .hero-tag::before{content:'';width:40px;height:1px;background:var(--green)}
+  h1{font-family:var(--cond);font-weight:900;font-size:clamp(3.5rem,8vw,7rem);line-height:0.95;letter-spacing:-0.02em;text-transform:uppercase;color:#fff;margin-bottom:1.5rem;max-width:700px}
+  h1 span{color:var(--green)}
+  .hero-sub{font-size:1.05rem;color:var(--text-dim);max-width:480px;margin-bottom:2.5rem;line-height:1.7}
+  .hero-stats{display:flex;gap:3rem;margin-bottom:2.5rem}
+  .stat{display:flex;flex-direction:column;gap:0.2rem}
+  .stat-num{font-family:var(--mono);font-size:1.6rem;color:var(--green);line-height:1}
+  .stat-label{font-family:var(--cond);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim)}
+  .btn{font-family:var(--cond);font-weight:700;font-size:0.85rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.7rem 2rem;border:1px solid var(--green);color:var(--green);background:transparent;text-decoration:none;cursor:pointer;transition:all 0.25s;display:inline-flex;align-items:center;gap:0.6rem}
+  .btn:hover{background:var(--green);color:var(--black);box-shadow:0 0 30px var(--green-glow)}
+  .btn-secondary{border-color:var(--border);color:var(--text-dim);margin-left:1rem}
+  .btn-secondary:hover{background:var(--card);color:var(--text);box-shadow:none;border-color:var(--text-dim)}
+  .ticker{position:absolute;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);padding:0.6rem 0;overflow:hidden}
+  .ticker-inner{display:flex;gap:4rem;white-space:nowrap;animation:ticker 40s linear infinite;font-family:var(--mono);font-size:0.72rem;color:var(--text-dim)}
+  .ticker-item{display:flex;align-items:center;gap:0.5rem}
+  .ticker-item span{color:var(--green)}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* SECTIONS */
+  section{padding:5rem 4rem}
+  .section-tag{font-family:var(--mono);font-size:0.68rem;color:var(--green);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.7rem}
+  .section-tag::before{content:'//';opacity:0.5}
+  h2{font-family:var(--cond);font-weight:900;font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-0.01em;text-transform:uppercase;color:#fff;margin-bottom:0.5rem}
+  .section-lead{color:var(--text-dim);max-width:560px;margin-bottom:3rem;font-size:0.97rem}
+
+  /* SCANNERS */
+  #scanners{background:var(--deep);border-top:1px solid var(--border)}
+  .scanner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5px;background:var(--border);border:1.5px solid var(--border);margin-bottom:3rem}
+  .scanner-card{background:var(--card);padding:1.8rem;transition:background 0.2s;position:relative;overflow:hidden}
+  .scanner-card::after{content:'';position:absolute;top:0;left:0;width:3px;height:0;background:var(--green);transition:height 0.3s}
+  .scanner-card:hover::after{height:100%}
+  .scanner-card:hover{background:#161f1b}
+  .scanner-brand{font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.4rem}
+  .scanner-model{font-family:var(--cond);font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:0.8rem;line-height:1.1}
+  .scanner-spec{font-size:0.82rem;color:var(--text-dim);line-height:1.7;margin-bottom:1.2rem}
+  .tag-list{display:flex;flex-wrap:wrap;gap:0.4rem}
+  .tag{font-family:var(--mono);font-size:0.62rem;padding:0.2rem 0.6rem;border:1px solid var(--border);color:var(--text-dim);letter-spacing:0.1em}
+  .tag.green{border-color:rgba(0,255,136,0.3);color:var(--green-dim)}
+  .tag.amber{border-color:rgba(255,170,0,0.3);color:var(--amber-dim)}
+  .tag.cyan{border-color:rgba(0,229,255,0.3);color:var(--cyan)}
+
+  /* FREQUENCIES */
+  #frequencies{background:var(--black);border-top:1px solid var(--border)}
+  .freq-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+  .freq-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:0.8rem}
+  .freq-table th{text-align:left;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);padding:0.6rem 0.8rem}
+  .freq-table td{padding:0.55rem 0.8rem;border-bottom:1px solid rgba(30,48,40,0.5);vertical-align:middle}
+  .freq-table tr:hover td{background:var(--green-faint)}
+  .freq-hz{color:var(--green)}
+  .freq-service{color:var(--text);font-size:0.78rem}
+  .freq-type{color:var(--text-dim)}
+  .dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite;margin-right:0.4rem}
+  .dot-inactive{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-dim);margin-right:0.4rem}
+  .spectrum-bar-wrap{background:var(--panel);border:1px solid var(--border);padding:1.5rem}
+  .spectrum-title{font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1.2rem}
+  .spectrum-bar{display:flex;align-items:flex-end;gap:3px;height:80px;margin-bottom:0.5rem}
+  .bar{flex:1;background:var(--green);opacity:0.7;border-radius:1px 1px 0 0;animation:bars 2s ease-in-out infinite;animation-delay:var(--d)}
+  @keyframes bars{0%,100%{height:var(--h1);opacity:0.5}50%{height:var(--h2);opacity:0.9}}
+  .spectrum-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:0.4rem}
+
+  /* CAMERAS */
+  #cameras{background:var(--deep);border-top:1px solid var(--border)}
+  .camera-intro{display:grid;grid-template-columns:1fr auto;align-items:end;gap:2rem;margin-bottom:2.5rem}
+  .camera-badge{display:flex;align-items:center;gap:0.6rem;font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);background:var(--card);border:1px solid var(--border);padding:0.5rem 1rem;white-space:nowrap}
+  .camera-filters{display:flex;gap:0.4rem;margin-bottom:2rem;flex-wrap:wrap}
+  .filter-btn{font-family:var(--mono);font-size:0.67rem;letter-spacing:0.12em;padding:0.35rem 0.9rem;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all 0.2s;text-transform:uppercase}
+  .filter-btn:hover,.filter-btn.active{border-color:var(--green);color:var(--green);background:var(--green-faint)}
+  .filter-btn.active{font-weight:700}
+  .filter-btn.sub{font-size:0.63rem;padding:0.28rem 0.65rem;border-color:rgba(0,255,136,0.2);color:rgba(0,255,136,0.5)}
+  .filter-btn.sub:hover,.filter-btn.sub.active{border-color:var(--green);color:var(--green);background:var(--green-faint)}
+  #quebecSubFilters{border-top:1px solid rgba(0,255,136,0.15);padding-top:0.6rem;margin-top:-0.8rem;margin-bottom:1rem}
+  .camera-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+  .cam-card{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:border-color 0.25s,box-shadow 0.25s;cursor:pointer}
+  .cam-card:hover{border-color:var(--green-dim);box-shadow:0 0 20px var(--green-glow)}
+  .cam-viewport{position:relative;aspect-ratio:16/9;background:#060e0a;overflow:hidden}
+  .cam-viewport img{width:100%;height:100%;object-fit:cover;display:block;transition:filter 0.4s}
+  .cam-card:hover .cam-viewport img{filter:brightness(1.05) contrast(1.08)}
+  .cam-overlay{position:absolute;top:0;left:0;right:0;padding:0.5rem 0.7rem;background:linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%);display:flex;justify-content:space-between;align-items:flex-start}
+  .cam-id{font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.6);letter-spacing:0.1em}
+  .cam-live-badge{font-family:var(--mono);font-size:0.58rem;background:rgba(0,255,136,0.2);border:1px solid var(--green);color:var(--green);padding:0.1rem 0.45rem;letter-spacing:0.1em;display:flex;align-items:center;gap:0.3rem}
+  .cam-bottom{position:absolute;bottom:0;left:0;right:0;padding:0.5rem 0.7rem;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent 100%)}
+  .cam-timestamp{font-family:var(--mono);font-size:0.58rem;color:rgba(255,255,255,0.45)}
+  .cam-info{padding:0.9rem 1rem;border-top:1px solid var(--border)}
+  .cam-location{font-family:var(--cond);font-size:1rem;font-weight:600;color:#fff;margin-bottom:0.2rem;line-height:1.2}
+  .cam-meta{font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);display:flex;gap:1rem}
+  .cam-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#090e0b;gap:0.6rem;color:var(--text-dim);font-family:var(--mono);font-size:0.7rem}
+  .cam-placeholder svg{opacity:0.3}
+
+  /* ABOUT */
+  #about{background:var(--black);border-top:1px solid var(--border)}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+  .about-block p{color:var(--text-dim);font-size:0.95rem;line-height:1.8;margin-bottom:1.2rem}
+  .gear-list{list-style:none;display:flex;flex-direction:column;gap:0.5rem}
+  .gear-list li{display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.78rem;color:var(--text);padding:0.6rem 0.8rem;border:1px solid var(--border);background:var(--card);transition:border-color 0.2s}
+  .gear-list li:hover{border-color:var(--green-dim)}
+  .gear-list li::before{content:'►';color:var(--green);font-size:0.55rem;flex-shrink:0}
+
+  /* FOOTER */
+  footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim)}
+  footer a{color:var(--text-dim);text-decoration:none}
+  footer a:hover{color:var(--green)}
+
+  /* PAGES */
+  .page{display:none}
+  .page.active{display:block}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;display:none;align-items:center;justify-content:center;padding:2rem}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--green-dim);max-width:720px;width:100%;box-shadow:0 0 60px rgba(0,255,136,0.1)}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--border)}
+  .modal-title{font-family:var(--cond);font-size:1rem;font-weight:700;color:#fff;letter-spacing:0.05em;text-transform:uppercase}
+  .modal-close{font-family:var(--mono);background:none;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:0.9rem;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .modal-close:hover{border-color:var(--red);color:var(--red)}
+  .modal-body{padding:1.5rem}
+  .modal-img-wrap{aspect-ratio:16/9;background:#000;margin-bottom:1rem;overflow:hidden}
+  .modal-img-wrap img{width:100%;height:100%;object-fit:cover}
+  .modal-meta{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--text-dim)}
+  .modal-meta label{color:var(--green-dim);display:block;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.1rem}
+
+  /* RESPONSIVE */
+  @media(max-width:960px){
+    section{padding:4rem 1.5rem}
+    #home{padding:5rem 1.5rem 3rem}
+    nav{padding:0 1rem}
+    .nav-center{gap:0}
+    .nav-center a{padding:0.4rem 0.5rem;font-size:0.7rem;letter-spacing:0.08em}
+    .freq-layout,.about-grid{grid-template-columns:1fr}
+    .hero-stats{gap:1.5rem}
+    .waveform{display:none}
+    footer{flex-direction:column;gap:0.8rem;text-align:center}
+    .camera-intro{grid-template-columns:1fr}
+  }
+  @media(max-width:600px){
+    .nav-center a{font-size:0.62rem;padding:0.35rem 0.35rem}
+    .lang-btn{padding:0.3rem 0.5rem}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home')">ScanQC</a>
+  <ul class="nav-center">
+    <li><a href="#" onclick="showPage('home')"        id="nav-home"        class="active" data-en="Home"         data-fr="Accueil">Home</a></li>
+    <li><a href="#" onclick="showPage('scanners')"    id="nav-scanners"    data-en="Scanners"     data-fr="Scanners">Scanners</a></li>
+    <li><a href="#" onclick="showPage('frequencies')" id="nav-frequencies" data-en="Frequencies"  data-fr="Fréquences">Frequencies</a></li>
+    <li><a href="#" onclick="showPage('cameras')"     id="nav-cameras"     data-en="MTQ Cameras"  data-fr="Caméras MTQ">MTQ Cameras</a></li>
+    <li><a href="#" onclick="showPage('about')"       id="nav-about"       data-en="About"        data-fr="À propos">About</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn"        onclick="setLang('fr')" id="btn-fr">FR</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+<section id="home">
+  <div class="hero-bg"></div>
+  <div class="waveform" aria-hidden="true">
+    <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <polyline id="wave1" points="" fill="none" stroke="rgba(0,255,136,0.5)" stroke-width="1.5"/>
+      <polyline id="wave2" points="" fill="none" stroke="rgba(0,229,255,0.25)" stroke-width="1"/>
+    </svg>
+  </div>
+  <div style="position:relative;z-index:1;">
+    <p class="hero-tag" data-en="Radio Communications &amp; Monitoring" data-fr="Radiocommunications &amp; Surveillance">Radio Communications &amp; Monitoring</p>
+    <h1>Scan<span>.</span><br>Listen<span>.</span><br>Discover.</h1>
+    <p class="hero-sub" data-en="Passionate about scanner monitoring, radio communications, and the invisible world of radio frequencies across Québec and beyond." data-fr="Passionné par la surveillance radio, les radiocommunications et le monde invisible des fréquences à travers le Québec et au-delà.">Passionate about scanner monitoring, radio communications, and the invisible world of radio frequencies across Québec and beyond.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">300+</span><span class="stat-label" data-en="Freq. Programmed" data-fr="Fréq. Programmées">Freq. Programmed</span></div>
+      <div class="stat"><span class="stat-num">2000+</span><span class="stat-label" data-en="MTQ Cameras" data-fr="Caméras MTQ">MTQ Cameras</span></div>
+      <div class="stat"><span class="stat-num">VHF/UHF</span><span class="stat-label" data-en="Primary Bands" data-fr="Bandes Principales">Primary Bands</span></div>
+    </div>
+    <div>
+      <a class="btn" href="#" onclick="showPage('cameras')" data-en="▶ MTQ Camera Feed" data-fr="▶ Caméras MTQ">▶ MTQ Camera Feed</a>
+      <a class="btn btn-secondary" href="#" onclick="showPage('frequencies')" data-en="Frequencies →" data-fr="Fréquences →">Frequencies →</a>
+    </div>
+  </div>
+  <div class="ticker"><div class="ticker-inner" id="tickerContent"></div></div>
+</section>
+</div>
+
+<!-- SCANNERS -->
+<div id="page-scanners" class="page">
+<section id="scanners" style="padding-top:6rem;">
+  <p class="section-tag" data-en="Equipment" data-fr="Équipement">Equipment</p>
+  <h2 id="h2-scanners" data-en='Scanner <span style="color:var(--green)">Arsenal</span>' data-fr='Arsenal de <span style="color:var(--green)">Scanners</span>'>Scanner <span style="color:var(--green)">Arsenal</span></h2>
+  <p class="section-lead" data-en="A curated collection of scanners and SDR gear for monitoring everything from emergency services to aircraft and maritime communications." data-fr="Une collection soigneusement choisie de scanners et d'équipements SDR pour surveiller tout, des services d'urgence aux communications aériennes et maritimes.">A curated collection of scanners and SDR gear for monitoring everything from emergency services to aircraft and maritime communications.</p>
+  <div class="scanner-grid">
+    <div class="scanner-card">
+      <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD536HP</div>
+      <div class="scanner-spec" data-en="HomePatrol Series digital scanner with Wi-Fi connectivity. Supports P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. 25,000 systems capacity, GPS-ready for location-based scanning." data-fr="Scanner numérique série HomePatrol avec connectivité Wi-Fi. Compatible P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. Capacité de 25 000 systèmes, prêt GPS pour la surveillance géolocalisée.">HomePatrol Series digital scanner with Wi-Fi connectivity. Supports P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. 25,000 systems capacity, GPS-ready for location-based scanning.</div>
+      <div class="tag-list"><span class="tag green">P25 P1/P2</span><span class="tag green">DMR</span><span class="tag amber" data-en="Base Station" data-fr="Station de base">Base Station</span><span class="tag">Wi-Fi</span><span class="tag cyan">NXDN</span></div>
+    </div>
+    <div class="scanner-card">
+      <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD325P2</div>
+      <div class="scanner-spec" data-en="Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
+      <div class="tag-list"><span class="tag green">P25 P2</span><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">25–1300 MHz</span></div>
+    </div>
+    <div class="scanner-card">
+      <div class="scanner-brand">Whistler</div><div class="scanner-model">WS1095</div>
+      <div class="scanner-spec" data-en="Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity." data-fr="Scanner numérique de bureau avec architecture PSR-500. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Ez-Scan et capacité de 6 000 canaux.">Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity.</div>
+      <div class="tag-list"><span class="tag green">P25</span><span class="tag amber" data-en="Desktop" data-fr="Bureau">Desktop</span><span class="tag">EZ-Scan</span></div>
+    </div>
+    <div class="scanner-card">
+      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v3</div>
+      <div class="scanner-spec" data-en="Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS." data-fr="Dongle radio logicielle couvrant 500 kHz – 1,75 GHz. Utilisé avec SDR# ou GQRX pour la surveillance large bande, le décodage ADS-B et ACARS.">Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS.</div>
+      <div class="tag-list"><span class="tag cyan">SDR</span><span class="tag">ADS-B</span><span class="tag">ACARS</span><span class="tag green">0.5–1750 MHz</span></div>
+    </div>
+    <div class="scanner-card">
+      <div class="scanner-brand">Icom</div><div class="scanner-model">IC-R20</div>
+      <div class="scanner-spec" data-en="Wide-coverage portable receiver, 150 kHz – 3.3 GHz (with gaps). Simultaneous dual reception, voice scrambler, and spectrum scope. A classic for field monitoring." data-fr="Récepteur portable large couverture, 150 kHz – 3,3 GHz. Double réception simultanée, brouilleur vocal et oscilloscope de spectre. Un classique pour la surveillance terrain.">Wide-coverage portable receiver, 150 kHz – 3.3 GHz (with gaps). Simultaneous dual reception, voice scrambler, and spectrum scope. A classic for field monitoring.</div>
+      <div class="tag-list"><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">Dual-RX</span><span class="tag green">0.15–3.3 GHz</span></div>
+    </div>
+    <div class="scanner-card">
+      <div class="scanner-brand">HackRF</div><div class="scanner-model">HackRF One</div>
+      <div class="scanner-spec" data-en="Half-duplex SDR transceiver, 1 MHz – 6 GHz. Used for signal analysis, replay attacks on test bench, trunked system reverse engineering, and GNU Radio experiments." data-fr="Émetteur-récepteur SDR semi-duplex, 1 MHz – 6 GHz. Utilisé pour l'analyse de signaux, les tests en laboratoire et les expériences GNU Radio.">Half-duplex SDR transceiver, 1 MHz – 6 GHz. Used for signal analysis, replay attacks on test bench, trunked system reverse engineering, and GNU Radio experiments.</div>
+      <div class="tag-list"><span class="tag cyan">SDR TX/RX</span><span class="tag">GNU Radio</span><span class="tag green">1 MHz–6 GHz</span></div>
+    </div>
+  </div>
+  <div style="background:var(--panel);border:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;">
+    <div>
+      <div class="section-tag" style="margin-bottom:0.3rem;" data-en="Antenna Setup" data-fr="Configuration Antenne">Antenna Setup</div>
+      <div style="font-family:var(--cond);font-size:1.3rem;font-weight:700;color:#fff;" data-en="Discone + Log-Periodic Combo" data-fr="Combo Discone + Périodique Log.">Discone + Log-Periodic Combo</div>
+      <div style="font-size:0.85rem;color:var(--text-dim);margin-top:0.3rem;" data-en="Diamond D-130J discone (25–1300 MHz) mounted with a Yagi for directional monitoring of priority sites. Fed via LMR-400 with a pre-amp." data-fr="Discone Diamond D-130J (25–1300 MHz) monté avec un Yagi pour la surveillance directionnelle des sites prioritaires. Alimenté via LMR-400 avec préamplificateur.">Diamond D-130J discone (25–1300 MHz) mounted with a Yagi for directional monitoring of priority sites. Fed via LMR-400 with a pre-amp.</div>
+    </div>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+      <div class="stat"><span class="stat-num" style="font-size:1.2rem;">12m</span><span class="stat-label" data-en="Mast Height" data-fr="Hauteur Mât">Mast Height</span></div>
+      <div class="stat"><span class="stat-num" style="font-size:1.2rem;">LNA</span><span class="stat-label" data-en="Pre-Amp" data-fr="Préampli">Pre-Amp</span></div>
+      <div class="stat"><span class="stat-num" style="font-size:1.2rem;">N-Type</span><span class="stat-label" data-en="Connectors" data-fr="Connecteurs">Connectors</span></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- FREQUENCIES -->
+<div id="page-frequencies" class="page">
+<section id="frequencies" style="padding-top:6rem;">
+  <p class="section-tag" data-en="Monitoring" data-fr="Surveillance">Monitoring</p>
+  <h2 id="h2-freq" data-en='Frequency <span style="color:var(--green)">Reference</span>' data-fr='Référence des <span style="color:var(--green)">Fréquences</span>'>Frequency <span style="color:var(--green)">Reference</span></h2>
+  <p class="section-lead" data-en="Key frequencies monitored in the Montréal and Québec region, organized by service. All frequencies are in MHz unless noted." data-fr="Fréquences clés surveillées dans la région de Montréal et du Québec, organisées par service. Toutes les fréquences sont en MHz sauf indication.">Key frequencies monitored in the Montréal and Québec region, organized by service. All frequencies are in MHz unless noted.</p>
+  <div class="freq-layout">
+    <div>
+      <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;" data-en="🚔 Emergency Services — Montréal" data-fr="🚔 Services d'urgence — Montréal">🚔 Emergency Services — Montréal</div>
+      <table class="freq-table">
+        <thead><tr><th data-en="Frequency" data-fr="Fréquence">Frequency</th><th data-en="Service" data-fr="Service">Service</th><th>Mode</th><th data-en="Status" data-fr="État">Status</th></tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">155.3400</td><td class="freq-service">SPVM Métro</td><td class="freq-type">P25 P2</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">155.5800</td><td class="freq-service">SPVM Nord</td><td class="freq-type">P25 P2</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">460.3500</td><td class="freq-service">SQ District 5</td><td class="freq-type">DMR</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">154.4300</td><td class="freq-service" data-en="Laval Police" data-fr="Police de Laval">Laval Police</td><td class="freq-type">P25</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">453.2000</td><td class="freq-service" data-en="Service Incendie MTL" data-fr="Service Incendie MTL">Service Incendie MTL</td><td class="freq-type">FM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">155.8050</td><td class="freq-service">CUSM / MUHC EMS</td><td class="freq-type">FM</td><td><span class="dot-inactive"></span></td></tr>
+          <tr><td class="freq-hz">851.0125</td><td class="freq-service" data-en="STM Metro Security" data-fr="Sécurité Métro STM">STM Metro Security</td><td class="freq-type">P25</td><td><span class="dot-live"></span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin:2rem 0 0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;" data-en="✈ Aviation — YUL / CYUL" data-fr="✈ Aviation — YUL / CYUL">✈ Aviation — YUL / CYUL</div>
+      <table class="freq-table">
+        <thead><tr><th data-en="Frequency" data-fr="Fréquence">Frequency</th><th data-en="Service" data-fr="Service">Service</th><th>Mode</th><th data-en="Status" data-fr="État">Status</th></tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">118.300</td><td class="freq-service" data-en="Montréal Approach" data-fr="Approche Montréal">Montréal Approach</td><td class="freq-type">AM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">119.100</td><td class="freq-service" data-en="Montréal Center" data-fr="Centre Montréal">Montréal Center</td><td class="freq-type">AM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">121.500</td><td class="freq-service" data-en="Guard / Emergency" data-fr="Garde / Urgence">Guard / Emergency</td><td class="freq-type">AM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">122.800</td><td class="freq-service">UNICOM</td><td class="freq-type">AM</td><td><span class="dot-inactive"></span></td></tr>
+          <tr><td class="freq-hz">1090 MHz</td><td class="freq-service" data-en="ADS-B Transponders" data-fr="Transpondeurs ADS-B">ADS-B Transponders</td><td class="freq-type">Mode S</td><td><span class="dot-live"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;" data-en="🚂 Rail &amp; Transit" data-fr="🚂 Ferroviaire &amp; Transit">🚂 Rail &amp; Transit</div>
+      <table class="freq-table">
+        <thead><tr><th data-en="Frequency" data-fr="Fréquence">Frequency</th><th data-en="Service" data-fr="Service">Service</th><th>Mode</th><th data-en="Status" data-fr="État">Status</th></tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">160.8100</td><td class="freq-service" data-en="CN Rail Main" data-fr="CN Rail Principal">CN Rail Main</td><td class="freq-type">FM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">161.2200</td><td class="freq-service" data-en="CP Rail East" data-fr="CP Rail Est">CP Rail East</td><td class="freq-type">FM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">457.9375</td><td class="freq-service" data-en="STM Bus Ops" data-fr="Opérations Bus STM">STM Bus Ops</td><td class="freq-type">DMR</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">160.2200</td><td class="freq-service" data-en="Exo Commuter Rail" data-fr="Train de banlieue Exo">Exo Commuter Rail</td><td class="freq-type">FM</td><td><span class="dot-live"></span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin:2rem 0 0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;" data-en="📡 Amateur / Repeaters" data-fr="📡 Radioamateur / Répéteurs">📡 Amateur / Repeaters</div>
+      <table class="freq-table">
+        <thead><tr><th data-en="Frequency" data-fr="Fréquence">Frequency</th><th data-en="Service" data-fr="Service">Service</th><th>Mode</th><th data-en="Status" data-fr="État">Status</th></tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">147.150</td><td class="freq-service" data-en="VE2 Montréal Repeater" data-fr="Répéteur VE2 Montréal">VE2 Montréal Repeater</td><td class="freq-type">FM +600</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.640</td><td class="freq-service">VE2CRA Laval</td><td class="freq-type">FM -600</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">443.600</td><td class="freq-service" data-en="VE2RQC UHF Link" data-fr="Lien UHF VE2RQC">VE2RQC UHF Link</td><td class="freq-type">FM +5</td><td><span class="dot-inactive"></span></td></tr>
+          <tr><td class="freq-hz">145.500</td><td class="freq-service" data-en="VHF Calling" data-fr="Appel VHF">VHF Calling</td><td class="freq-type">FM</td><td><span class="dot-live"></span></td></tr>
+        </tbody>
+      </table>
+      <div class="spectrum-bar-wrap" style="margin-top:2rem;">
+        <div class="spectrum-title" data-en="Simulated Spectrum Activity — 150–175 MHz" data-fr="Activité spectrale simulée — 150–175 MHz">Simulated Spectrum Activity — 150–175 MHz</div>
+        <div class="spectrum-bar" id="specBars"></div>
+        <div class="spectrum-labels"><span>150 MHz</span><span>155 MHz</span><span>160 MHz</span><span>165 MHz</span><span>170 MHz</span><span>175 MHz</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- MTQ CAMERAS -->
+<div id="page-cameras" class="page">
+<section id="cameras" style="padding-top:6rem;">
+  <div class="camera-intro">
+    <div>
+      <p class="section-tag" data-en="Transports Québec — 511" data-fr="Transports Québec — 511">Transports Québec — 511</p>
+      <h2 id="h2-cameras" data-en='MTQ Traffic <span style="color:var(--green)">Cameras</span>' data-fr='Caméras de circulation <span style="color:var(--green)">MTQ</span>'>MTQ Traffic <span style="color:var(--green)">Cameras</span></h2>
+      <p class="section-lead" style="margin-bottom:0;" data-en="Live traffic camera network operated by the Ministère des Transports et de la Mobilité durable du Québec. Updated every 60 seconds. Source: Québec 511." data-fr="Réseau de caméras de circulation exploité par le Ministère des Transports et de la Mobilité durable du Québec. Mise à jour toutes les 60 secondes. Source : Québec 511.">Live traffic camera network operated by the Ministère des Transports et de la Mobilité durable du Québec. Updated every 60 seconds. Source: Québec 511.</p>
+    </div>
+    <div><div class="camera-badge"><span class="dot-live"></span><span data-en="Auto-refresh 60s" data-fr="Actualisation auto 60s">Auto-refresh 60s</span></div></div>
+  </div>
+  <div class="camera-filters" id="mainFilters">
+    <button class="filter-btn active" onclick="filterCams('all',this)"              data-en="All Regions"          data-fr="Toutes les régions">All Regions</button>
+    <button class="filter-btn"        onclick="filterCams('montreal',this)"         data-en="Montréal"             data-fr="Montréal">Montréal</button>
+    <button class="filter-btn"        onclick="filterCams('laval',this)"            data-en="Laval"                data-fr="Laval">Laval</button>
+    <button class="filter-btn"        onclick="filterCams('rive-sud',this)"         data-en="Rive-Sud"             data-fr="Rive-Sud">Rive-Sud</button>
+    <button class="filter-btn"        onclick="filterCams('hull',this)"             data-en="Hull/Gatineau"        data-fr="Hull/Gatineau">Hull/Gatineau</button>
+    <button class="filter-btn"        onclick="filterCams('laurentides',this)"      data-en="Laurentides"          data-fr="Laurentides">Laurentides</button>
+    <button class="filter-btn"        onclick="filterCams('parc-laurentides',this)" data-en="Parc des Laurentides" data-fr="Parc des Laurentides">Parc des Laurentides</button>
+    <button class="filter-btn qc-parent" onclick="openQuebecFilters(this)"         data-en="Québec City ▾"        data-fr="Capitale-Nationale ▾">Québec City ▾</button>
+    <button class="filter-btn"        onclick="filterCams('route138',this)"         data-en="Route 138"            data-fr="Route 138">Route 138</button>
+    <button class="filter-btn"        onclick="filterCams('saguenay',this)"         data-en="Saguenay"             data-fr="Saguenay">Saguenay</button>
+  </div>
+  <!-- Sous-filtres Québec Capitale-Nationale par autoroute -->
+  <div class="camera-filters" id="quebecSubFilters" style="display:none;margin-top:0;padding-top:0.5rem;border-top:1px solid var(--border);">
+    <button class="filter-btn sub active" onclick="filterCams('quebec',this)"      data-en="All — Québec" data-fr="Toutes — Québec">Toutes</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a40',this)"      data-en="A-40"  data-fr="A-40">A-40</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a73',this)"      data-en="A-73"  data-fr="A-73">A-73</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a440',this)"     data-en="A-440" data-fr="A-440">A-440</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a540',this)"     data-en="A-540" data-fr="A-540">A-540</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a573',this)"     data-en="A-573" data-fr="A-573">A-573</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-a740',this)"     data-en="A-740" data-fr="A-740">A-740</button>
+    <button class="filter-btn sub"        onclick="filterCams('qc-r138',this)"     data-en="R-138" data-fr="R-138">R-138</button>
+  </div>
+  <div class="camera-grid" id="cameraGrid"></div>
+  <div style="margin-top:2rem;padding:1rem 1.5rem;background:var(--panel);border:1px solid var(--border);display:flex;align-items:center;gap:1rem;font-family:var(--mono);font-size:0.72rem;color:var(--text-dim);">
+    <span style="color:var(--amber);">⚠</span>
+    <span data-en="Camera images are sourced from Transports Québec (MTQ) via the Québec 511 open data system. Images refresh automatically. All rights to source imagery belong to the Gouvernement du Québec." data-fr="Les images des caméras proviennent de Transports Québec (MTQ) via Québec 511. Les images se rafraîchissent automatiquement. Tous droits réservés au Gouvernement du Québec.">Camera images are sourced from Transports Québec (MTQ) via the Québec 511 open data system. Images refresh automatically. All rights to source imagery belong to the Gouvernement du Québec.</span>
+  </div>
+</section>
+</div>
+
+<!-- ABOUT -->
+<div id="page-about" class="page">
+<section id="about" style="padding-top:6rem;">
+  <p class="section-tag" data-en="About" data-fr="À propos">About</p>
+  <h2 id="h2-about" data-en='The <span style="color:var(--green)">Passion</span>' data-fr='La <span style="color:var(--green)">Passion</span>'>The <span style="color:var(--green)">Passion</span></h2>
+  <div class="about-grid">
+    <div class="about-block">
+      <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Montréal au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
+      <p data-en="Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Montréal, Québec, ma configuration de surveillance couvre les services d'urgence VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
+      <p data-en="The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying." data-fr="Le réseau de caméras MTQ est un complément fascinant à la surveillance radio — quand vous entendez un incident sur le scanner, vous pouvez souvent afficher la caméra de circulation la plus proche pour voir les conditions réelles. Cette synthèse de surveillance audio et de confirmation visuelle est singulièrement satisfaisante.">The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying.</p>
+      <p data-en="This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network." data-fr="Ce site sert de référence pour les passionnés de la région du Québec — listes de fréquences, revues d'équipements et accès au réseau de caméras MTQ.">This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network.</p>
+      <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <a class="btn" href="https://www.quebec511.info" target="_blank" data-en="Québec 511 Official →" data-fr="Québec 511 Officiel →">Québec 511 Official →</a>
+        <a class="btn btn-secondary" href="https://www.radioreference.com/apps/db/?ctid=CAF006" target="_blank">RadioReference QC</a>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1rem;" data-en="Current Monitoring Setup" data-fr="Configuration de surveillance actuelle">Current Monitoring Setup</div>
+      <ul class="gear-list">
+        <li data-en="Uniden BCD536HP — P25 P2 home base"           data-fr="Uniden BCD536HP — Base fixe P25 P2">Uniden BCD536HP — P25 P2 home base</li>
+        <li data-en="RTL-SDR v3 + SDR# — wideband monitoring"      data-fr="RTL-SDR v3 + SDR# — surveillance large bande">RTL-SDR v3 + SDR# — wideband monitoring</li>
+        <li data-en="Diamond D-130J Discone — 25–1300 MHz"         data-fr="Discone Diamond D-130J — 25–1300 MHz">Diamond D-130J Discone — 25–1300 MHz</li>
+        <li data-en="Virtual Radar Server — ADS-B tracking"        data-fr="Virtual Radar Server — suivi ADS-B">Virtual Radar Server — ADS-B tracking</li>
+        <li data-en="DSD+ — digital voice decoder"                 data-fr="DSD+ — décodeur vocal numérique">DSD+ — digital voice decoder</li>
+        <li data-en="trunk-recorder — P25 logging"                 data-fr="trunk-recorder — journalisation P25">trunk-recorder — P25 logging</li>
+        <li data-en="Unitrunker — trunking follow"                 data-fr="Unitrunker — suivi de trunk">Unitrunker — trunking follow</li>
+        <li data-en="GQRX — SDR on Linux workstation"              data-fr="GQRX — SDR sur station Linux">GQRX — SDR on Linux workstation</li>
+        <li data-en="Broadcastify — stream archiving"              data-fr="Broadcastify — archivage de flux">Broadcastify — stream archiving</li>
+        <li data-en="Quebec 511 API — MTQ camera access"           data-fr="API Québec 511 — accès caméras MTQ">Quebec 511 API — MTQ camera access</li>
+      </ul>
+      <div style="margin-top:2rem;background:var(--panel);border:1px solid var(--border);padding:1.5rem;">
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--green);letter-spacing:0.15em;margin-bottom:0.8rem;" data-en="// RESOURCES" data-fr="// RESSOURCES">// RESOURCES</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">
+          <a href="https://www.radioreference.com" target="_blank" style="color:var(--text-dim);text-decoration:none;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-dim)'">→ RadioReference.com</a>
+          <a href="https://www.quebec511.info" target="_blank" style="color:var(--text-dim);text-decoration:none;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-dim)'">→ Québec 511</a>
+          <a href="https://www.broadcastify.com" target="_blank" style="color:var(--text-dim);text-decoration:none;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-dim)'">→ Broadcastify</a>
+          <a href="https://www.virtualradarserver.co.uk" target="_blank" style="color:var(--text-dim);text-decoration:none;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-dim)'">→ Virtual Radar Server</a>
+          <a href="https://open.canada.ca/data/en/dataset/d2f1dce5-35c5-4bb5-a54c-3b8ec9ac9de9" target="_blank" style="color:var(--text-dim);text-decoration:none;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-dim)'">→ <span data-en="MTQ Camera Open Data" data-fr="Données ouvertes caméras MTQ">MTQ Camera Open Data</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <span>ScanQC — Montréal, Québec</span>
+  <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
+  <span id="footer-camera-credit">Camera data: <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
+</footer>
+
+<div class="modal-overlay" id="camModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Camera Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-img-wrap"><img id="modalImg" src="" alt="Camera feed"></div>
+      <div class="modal-meta" id="modalMeta"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── LANGUAGE ──────────────────────────────────────────────
+let lang = localStorage.getItem('scanqc-lang') || 'en';
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('scanqc-lang', l);
+  document.documentElement.lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l==='en');
+  document.getElementById('btn-fr').classList.toggle('active', l==='fr');
+
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const v = el.getAttribute('data-'+l);
+    if (!v) return;
+    if (v.includes('<') || v.includes('&')) el.innerHTML = v;
+    else el.textContent = v;
+  });
+
+  // Footer credit
+  const fc = document.getElementById('footer-camera-credit');
+  if (fc) fc.innerHTML = (l==='fr' ? 'Données caméras : ' : 'Camera data: ')
+    + '<a href="https://www.quebec511.info" target="_blank" style="color:var(--text-dim);text-decoration:none;">Transports Québec</a>';
+
+  document.title = l==='fr' ? 'ScanQC — Scanner et Radiocommunications' : 'ScanQC — Scanner & Radio Communications';
+
+  // Rebuild cam grid to use translated names
+  const af = document.querySelector('.filter-btn.active');
+  if (af) {
+    const m = af.getAttribute('onclick').match(/'([^']+)'/);
+    buildCamGrid(m ? m[1] : 'all');
+  }
+}
+
+// ── PAGE ROUTING ──────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-center a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── TICKER ────────────────────────────────────────────────
+const tickerData = [
+  {hz:'155.340 MHz',lbl:'SPVM Métro'},{hz:'460.350 MHz',lbl:'SQ District 5'},
+  {hz:'118.300 MHz',lbl:'MTL Approach'},{hz:'160.810 MHz',lbl:'CN Rail'},
+  {hz:'1090 MHz',lbl:'ADS-B Mode S'},{hz:'453.200 MHz',lbl:'MTL Incendie'},
+  {hz:'147.150 MHz',lbl:'VE2 Répéteur'},{hz:'851.012 MHz',lbl:'STM Métro'},
+  {hz:'161.220 MHz',lbl:'CP Rail Est'},{hz:'457.937 MHz',lbl:'STM Bus'},
+];
+const tEl = document.getElementById('tickerContent');
+const tAll = [...tickerData,...tickerData];
+tEl.innerHTML = tAll.map(d=>`<span class="ticker-item"><span>${d.hz}</span> ${d.lbl}</span>`).join('');
+
+// ── WAVEFORM ──────────────────────────────────────────────
+function genWave(id,amp,off,spd){
+  const el=document.getElementById(id); let t=off;
+  (function draw(){
+    const pts=[];
+    for(let x=0;x<=600;x+=8){const y=100+amp*Math.sin((x/80)+t)*Math.cos((x/160)+t*0.7);pts.push(x+','+y);}
+    el.setAttribute('points',pts.join(' ')); t+=spd; requestAnimationFrame(draw);
+  })();
+}
+genWave('wave1',35,0,0.015);
+genWave('wave2',20,Math.PI,0.02);
+
+// ── SPECTRUM ──────────────────────────────────────────────
+const sc=document.getElementById('specBars');
+for(let i=0;i<48;i++){
+  const h1=5+Math.random()*30,h2=10+Math.random()*70;
+  const b=document.createElement('div'); b.className='bar';
+  b.style.setProperty('--h1',h1+'%'); b.style.setProperty('--h2',h2+'%');
+  b.style.setProperty('--d',(Math.random()*2)+'s'); b.style.height=h1+'%';
+  if(Math.random()>0.88) b.style.background='var(--amber)';
+  else if(Math.random()>0.93) b.style.background='var(--cyan)';
+  sc.appendChild(b);
+}
+
+// ── CAMERAS ─────────────────────────────────────────────────
+// Working URL (proven from reference code):
+// https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=XXXX
+// Used directly in <video><source> — no proxy, no API, no iframe needed.
+
+const Q511_VIDEO = id =>
+  `https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=${id}`;
+
+const cameras = [
+  // ── MONTRÉAL ──────────────────────────────────────────────
+  {id:3399, r:'montreal',    en:'A-13 at A-20',                       fr:'A-13 à l\'A-20',                      lat:45.453, lng:-73.660},
+  {id:3398, r:'montreal',    en:'A-13 north of A-20',                 fr:'A-13 nord de l\'A-20',                lat:45.460, lng:-73.657},
+  {id:3340, r:'montreal',    en:'A-15 at Côte-Saint-Paul',            fr:'A-15 / Côte-Saint-Paul',              lat:45.465, lng:-73.607},
+  {id:3337, r:'montreal',    en:'A-15 at Sherbrooke Ouest',           fr:'A-15 / Sherbrooke Ouest',             lat:45.468, lng:-73.609},
+  {id:3329, r:'montreal',    en:'A-15 South — Décarie',               fr:'A-15 Sud — Décarie',                  lat:45.473, lng:-73.619},
+  {id:3816, r:'montreal',    en:'A-20 west of Turcot',                fr:'A-20 ouest Turcot',                   lat:45.461, lng:-73.580},
+  {id:3808, r:'montreal',    en:'A-25 at La Fontaine Tunnel',         fr:'A-25 / Tunnel La Fontaine',           lat:45.537, lng:-73.506},
+  {id:3425, r:'montreal',    en:'A-40 at A-25 — Anjou',               fr:'A-40 / A-25 — Anjou',                 lat:45.579, lng:-73.558},
+  // ── LAVAL ──────────────────────────────────────────────────
+  {id:3341, r:'laval',       en:'A-15 at boul. Cartier Ouest',        fr:'A-15 / boul. Cartier Ouest',          lat:45.560, lng:-73.709},
+  {id:3342, r:'laval',       en:'A-15 at boul. du Souvenir',          fr:'A-15 / boul. du Souvenir',            lat:45.570, lng:-73.714},
+  {id:3343, r:'laval',       en:'A-15 at boul. Saint-Martin',         fr:'A-15 / boul. Saint-Martin',           lat:45.576, lng:-73.716},
+  // ── RIVE-SUD ───────────────────────────────────────────────
+  {id:3322, r:'rive-sud',    en:'A-10 at Champlain Bridge',           fr:'A-10 / pont Champlain',               lat:45.490, lng:-73.524},
+  {id:3323, r:'rive-sud',    en:'A-10 west of route 134',             fr:'A-10 ouest route 134',                lat:45.449, lng:-73.468},
+  {id:3324, r:'rive-sud',    en:'A-10 east of route 134',             fr:'A-10 est route 134',                  lat:45.447, lng:-73.462},
+  // ── HULL / GATINEAU ────────────────────────────────────────
+  {id:3580, r:'hull',        en:'A-5 at boul. Maisonneuve',           fr:'A-5 / boul. Maisonneuve',             lat:45.430, lng:-75.720},
+  {id:3581, r:'hull',        en:'A-5 South / boul. du Casino',        fr:'A-5 dir. sud / Casino',               lat:45.425, lng:-75.718},
+  {id:3584, r:'hull',        en:'A-50 at A-5 interchange',            fr:'Échangeur A-50 / A-5',                lat:45.464, lng:-75.680},
+  {id:3591, r:'hull',        en:'A-50 at boul. Allumettières',        fr:'A-50 / boul. Allumettières',          lat:45.452, lng:-75.698},
+  {id:3596, r:'hull',        en:'Boul. Fournier southbound',          fr:'Boul. Fournier dir. sud',             lat:45.467, lng:-75.660},
+  // ── LAURENTIDES ────────────────────────────────────────────
+  {id:3345, r:'laurentides', en:'A-15 at pont Gédéon-Ouimet',        fr:'A-15 / pont Gédéon-Ouimet',           lat:45.709, lng:-73.991},
+  {id:3347, r:'laurentides', en:'A-15 at A-640',                     fr:'A-15 / A-640',                        lat:45.736, lng:-74.000},
+  {id:3349, r:'laurentides', en:'A-15 at Côte Nord',                 fr:'A-15 / ch. Côte Nord',                lat:45.755, lng:-74.008},
+  {id:3535, r:'parc-laurentides', en:'R-175 at l\'Étape (Parc des Laurentides)', fr:'R-175 à l\'Étape (Parc des Laurentides)', lat:47.360, lng:-71.100},
+  // ── QUÉBEC CITY — A-40 ────────────────────────────────────────────────────
+  {id:3968, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / route 138',               en:'A-40 E at route 138'},
+  {id:3967, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / route 138',             en:'A-40 W at route 138'},
+  {id:3966, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / boul. des Chutes',        en:'A-40 E at boul. des Chutes'},
+  {id:3965, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / boul. des Chutes',      en:'A-40 W at boul. des Chutes'},
+  {id:3551, r:'quebec', sub:'qc-a40', fr:'A-40 / route de Fossambault',               en:'A-40 at route de Fossambault'},
+  {id:3792, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) à l\'est de la route 138',en:'A-40 W east of route 138'},
+  {id:3502, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) à l\'est de la route 138',  en:'A-40 E east of route 138'},
+  {id:3552, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / ch. du Lac',            en:'A-40 W at ch. du Lac'},
+  {id:3553, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / ch. du Lac',              en:'A-40 E at ch. du Lac'},
+  {id:3604, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / ch. Jean-Gauvin',       en:'A-40 W at ch. Jean-Gauvin'},
+  {id:3480, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / ch. Jean-Gauvin',         en:'A-40 E at ch. Jean-Gauvin'},
+  {id:3481, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / av. Le Gendre',         en:'A-40 W at av. Le Gendre'},
+  {id:3844, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / av. Le Gendre',           en:'A-40 E at av. Le Gendre'},
+  {id:3848, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / aut. 540',              en:'A-40 W at A-540'},
+  {id:3849, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / aut. 540',                en:'A-40 E at A-540'},
+  {id:3573, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / av. Blaise-Pascal',     en:'A-40 W at av. Blaise-Pascal'},
+  {id:3482, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / av. Blaise-Pascal',       en:'A-40 E at av. Blaise-Pascal'},
+  {id:3614, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / aut. 73 (Henri-IV)',    en:'A-40 W at A-73 (Henri-IV)'},
+  {id:3485, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / aut. 73 (Henri-IV)',      en:'A-40 E at A-73 (Henri-IV)'},
+  {id:3486, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / boul. Saint-Jacques',   en:'A-40 W at boul. Saint-Jacques'},
+  {id:3609, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / boul. Saint-Jacques',     en:'A-40 E at boul. Saint-Jacques'},
+  {id:3487, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / aut. 740',              en:'A-40 W at A-740'},
+  {id:3488, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / aut. 740',                en:'A-40 E at A-740'},
+  {id:3489, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / boul. Pierre-Bertrand', en:'A-40 W at boul. Pierre-Bertrand'},
+  {id:3490, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / boul. Pierre-Bertrand',   en:'A-40 E at boul. Pierre-Bertrand'},
+  {id:3491, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / aut. 73 (Laurentienne)',en:'A-40 W at A-73 (Laurentienne)'},
+  {id:3492, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / aut. 73 (Laurentienne)',  en:'A-40 E at A-73 (Laurentienne)'},
+  {id:3523, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / 1re Avenue',            en:'A-40 W at 1re Avenue'},
+  {id:3524, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / 1re Avenue',              en:'A-40 E at 1re Avenue'},
+  {id:3554, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / boul. Henri-Bourassa',  en:'A-40 W at boul. Henri-Bourassa'},
+  {id:3555, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / boul. Henri-Bourassa',    en:'A-40 E at boul. Henri-Bourassa'},
+  {id:3525, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / av. D\'Estimauville',   en:'A-40 W at av. D\'Estimauville'},
+  {id:3526, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / av. D\'Estimauville',     en:'A-40 E at av. D\'Estimauville'},
+  {id:3556, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / av. Saint-David',       en:'A-40 W at av. Saint-David'},
+  {id:3557, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / av. Saint-David',         en:'A-40 E at av. Saint-David'},
+  {id:3558, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / rue Seigneuriale',      en:'A-40 W at rue Seigneuriale'},
+  {id:3559, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / rue Seigneuriale',        en:'A-40 E at rue Seigneuriale'},
+  {id:3560, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / rue Labelle',           en:'A-40 W at rue Labelle'},
+  {id:3561, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. est) / rue Labelle',             en:'A-40 E at rue Labelle'},
+  {id:3508, r:'quebec', sub:'qc-a40', fr:'A-40 (dir. ouest) / aut. 440',              en:'A-40 W at A-440'},
+  {id:3605, r:'quebec', sub:'qc-a40', fr:'A-440 (dir. ouest) / pont de l\'Île-d\'Orléans', en:'A-440 W at Île-d\'Orléans bridge'},
+  // ── QUÉBEC CITY — A-73 ────────────────────────────────────────────────────
+  {id:3976, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / Stoneham',                en:'A-73 S at Stoneham'},
+  {id:3975, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / rue Jacques-Bédard',      en:'A-73 S at rue Jacques-Bédard'},
+  {id:3455, r:'quebec', sub:'qc-a73', fr:'A-73 sur le pont Pierre-Laporte',           en:'A-73 on Pont Pierre-Laporte'},
+  {id:3454, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / pont Pierre-Laporte',     en:'A-73 S at Pont Pierre-Laporte'},
+  {id:3603, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / pont Pierre-Laporte',    en:'A-73 N at Pont Pierre-Laporte'},
+  {id:3469, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / aut. 540',                en:'A-73 S at A-540'},
+  {id:3470, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / aut. 540',               en:'A-73 N at A-540'},
+  {id:3471, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / boul. Hochelaga',         en:'A-73 S at boul. Hochelaga'},
+  {id:3611, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / boul. Hochelaga',        en:'A-73 N at boul. Hochelaga'},
+  {id:3472, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / ch. des Quatre-Bourgeois',en:'A-73 S at ch. des Quatre-Bourgeois'},
+  {id:3846, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / ch. des Quatre-Bourgeois',en:'A-73 N at ch. des Quatre-Bourgeois'},
+  {id:3473, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) sortie 138 / ch. Sainte-Foy',en:'A-73 S exit 138 Sainte-Foy'},
+  {id:3610, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) sortie 138 / ch. Sainte-Foy',en:'A-73 N exit 138 Sainte-Foy'},
+  {id:3970, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / ch. Sainte-Foy',          en:'A-73 S at ch. Sainte-Foy'},
+  {id:3474, r:'quebec', sub:'qc-a73', fr:'A-73 Henri-IV (dir. sud) / aut. 440',       en:'A-73 Henri-IV S at A-440'},
+  {id:3475, r:'quebec', sub:'qc-a73', fr:'A-73 Henri-IV (dir. nord) / aut. 440',      en:'A-73 Henri-IV N at A-440'},
+  {id:3476, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / rue John-Molson',         en:'A-73 S at rue John-Molson'},
+  {id:3847, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / rue John-Molson',        en:'A-73 N at rue John-Molson'},
+  {id:3713, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / boul. Wilfrid-Hamel',     en:'A-73 S at boul. Wilfrid-Hamel'},
+  {id:3712, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / boul. Wilfrid-Hamel',    en:'A-73 N at boul. Wilfrid-Hamel'},
+  {id:3477, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) nord du boul. Wilfrid-Hamel',en:'A-73 S north of Wilfrid-Hamel'},
+  {id:3564, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) nord du boul. Wilfrid-Hamel',en:'A-73 N north of Wilfrid-Hamel'},
+  {id:3898, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / aut. 40 et aut. 573',     en:'A-73 S at A-40 & A-573'},
+  {id:3897, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / aut. 40 et aut. 573',    en:'A-73 N at A-40 & A-573'},
+  {id:3484, r:'quebec', sub:'qc-a73', fr:'A-73 Henri-IV (dir. sud) / aut. 40',        en:'A-73 Henri-IV S at A-40'},
+  {id:3579, r:'quebec', sub:'qc-a73', fr:'A-73 Laurentienne (dir. nord) / aut. 40',   en:'A-73 Laurentienne N at A-40'},
+  {id:3493, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / boul. Lebourgneuf',       en:'A-73 S at boul. Lebourgneuf'},
+  {id:3608, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / boul. Lebourgneuf',      en:'A-73 N at boul. Lebourgneuf'},
+  {id:3911, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / boul. Louis-XIV',        en:'A-73 N at boul. Louis-XIV'},
+  {id:3494, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / boul. Louis-XIV',         en:'A-73 S at boul. Louis-XIV'},
+  {id:3607, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / boul. Jean-Talon',        en:'A-73 S at boul. Jean-Talon'},
+  {id:3495, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / boul. Jean-Talon',       en:'A-73 N at boul. Jean-Talon'},
+  {id:3912, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / rue de la Faune',        en:'A-73 N at rue de la Faune'},
+  {id:3622, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / rue de la Faune',         en:'A-73 S at rue de la Faune'},
+  {id:3621, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / rue de la Faune (2)',    en:'A-73 N at rue de la Faune (2)'},
+  {id:3913, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. sud) / rue George-Muir',         en:'A-73 S at rue George-Muir'},
+  {id:3623, r:'quebec', sub:'qc-a73', fr:'A-73 (dir. nord) / rue George-Muir',        en:'A-73 N at rue George-Muir'},
+  {id:3624, r:'quebec', sub:'qc-a73', fr:'A-73 nord de la rue George-Muir',           en:'A-73 north of rue George-Muir'},
+  {id:3505, r:'quebec', sub:'qc-a73', fr:'A-73 sortie 157 (Lac-Beauport)',             en:'A-73 exit 157 (Lac-Beauport)'},
+  // ── QUÉBEC CITY — A-440 ───────────────────────────────────────────────────
+  {id:3909, r:'quebec', sub:'qc-a440', fr:'A-440 / rue Frank-Carrel',                 en:'A-440 at rue Frank-Carrel'},
+  {id:3515, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / aut. 73 (Henri-IV)',  en:'A-440 W at A-73 (Henri-IV)'},
+  {id:3516, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / aut. 73 (Henri-IV)',    en:'A-440 E at A-73 (Henri-IV)'},
+  {id:3503, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / aut. 740',            en:'A-440 W at A-740'},
+  {id:3845, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / aut. 740',              en:'A-440 E at A-740'},
+  {id:3520, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / boul. du Versant-Nord',en:'A-440 W at boul. du Versant-Nord'},
+  {id:3627, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / boul. du Versant-Nord', en:'A-440 E at boul. du Versant-Nord'},
+  {id:3521, r:'quebec', sub:'qc-a440', fr:'A-440 ouest de l\'av. Saint-Sacrement',    en:'A-440 west of av. Saint-Sacrement'},
+  {id:3796, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / av. Honoré-Mercier',  en:'A-440 W at av. Honoré-Mercier'},
+  {id:3797, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / rivière Saint-Charles',en:'A-440 W at rivière Saint-Charles'},
+  {id:3795, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / rivière Saint-Charles', en:'A-440 E at rivière Saint-Charles'},
+  {id:3708, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / boul. Henri-Bourassa',en:'A-440 W at boul. Henri-Bourassa'},
+  {id:3709, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / boul. Henri-Bourassa',  en:'A-440 E at boul. Henri-Bourassa'},
+  {id:3711, r:'quebec', sub:'qc-a440', fr:'Boul. Henri-Bourassa (dir. sud) / aut. 440',en:'Boul. Henri-Bourassa S at A-440'},
+  {id:3710, r:'quebec', sub:'qc-a440', fr:'Boul. Henri-Bourassa (dir. nord) / aut. 440',en:'Boul. Henri-Bourassa N at A-440'},
+  {id:3511, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / av. D\'Estimauville', en:'A-440 W at av. D\'Estimauville'},
+  {id:3703, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / av. D\'Estimauville',   en:'A-440 E at av. D\'Estimauville'},
+  {id:3704, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / boul. François-de-Laval',en:'A-440 W at boul. François-de-Laval'},
+  {id:3705, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / boul. François-de-Laval',  en:'A-440 E at boul. François-de-Laval'},
+  {id:3706, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / boul. des Chutes',    en:'A-440 W at boul. des Chutes'},
+  {id:3707, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. est) / boul. des Chutes',      en:'A-440 E at boul. des Chutes'},
+  {id:3606, r:'quebec', sub:'qc-a440', fr:'A-440 (dir. ouest) / aut. 40',             en:'A-440 W at A-40'},
+  // ── QUÉBEC CITY — A-540 ───────────────────────────────────────────────────
+  {id:3998, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. ouest) / boul. Wilfrid-Hamel', en:'A-540 W at boul. Wilfrid-Hamel'},
+  {id:3612, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. sud) / aut. 73',               en:'A-540 S at A-73'},
+  {id:3613, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. nord) / aut. 73',              en:'A-540 N at A-73'},
+  {id:3499, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. sud) / boul. Hochelaga',       en:'A-540 S at boul. Hochelaga'},
+  {id:3602, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. nord) / boul. Hochelaga',      en:'A-540 N at boul. Hochelaga'},
+  {id:3601, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. sud) / ch. Sainte-Foy',        en:'A-540 S at ch. Sainte-Foy'},
+  {id:3504, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. nord) / ch. Sainte-Foy',       en:'A-540 N at ch. Sainte-Foy'},
+  {id:3574, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. sud) / boul. du Versant-Nord', en:'A-540 S at boul. du Versant-Nord'},
+  {id:3478, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. nord) / boul. du Versant-Nord',en:'A-540 N at boul. du Versant-Nord'},
+  {id:3479, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. sud) / av. Jules-Verne',       en:'A-540 S at av. Jules-Verne'},
+  {id:3910, r:'quebec', sub:'qc-a540', fr:'A-540 (dir. nord) / av. Jules-Verne',      en:'A-540 N at av. Jules-Verne'},
+  // ── QUÉBEC CITY — A-573 ───────────────────────────────────────────────────
+  {id:3851, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. sud) / aut. 40',               en:'A-573 S at A-40'},
+  {id:3850, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / aut. 40',              en:'A-573 N at A-40'},
+  {id:3517, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. sud) / rue Jean-Marchand',     en:'A-573 S at rue Jean-Marchand'},
+  {id:3852, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / rue Jean-Marchand',    en:'A-573 N at rue Jean-Marchand'},
+  {id:3518, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. sud) / boul. Chauveau Ouest',  en:'A-573 S at boul. Chauveau Ouest'},
+  {id:3519, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / boul. Chauveau Ouest', en:'A-573 N at boul. Chauveau Ouest'},
+  {id:3615, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. sud) / route Sainte-Geneviève',en:'A-573 S at route Sainte-Geneviève'},
+  {id:3616, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / route Sainte-Geneviève',en:'A-573 N at route Sainte-Geneviève'},
+  {id:3617, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. sud) / av. Industrielle',      en:'A-573 S at av. Industrielle'},
+  {id:3618, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / av. Industrielle',     en:'A-573 N at av. Industrielle'},
+  {id:3969, r:'quebec', sub:'qc-a573', fr:'A-573 (dir. nord) / rue de Montolieu',     en:'A-573 N at rue de Montolieu'},
+  // ── QUÉBEC CITY — A-740 ───────────────────────────────────────────────────
+  {id:3566, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / ch. des Quatre-Bourgeois',en:'A-740 S at ch. des Quatre-Bourgeois'},
+  {id:3567, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / ch. des Quatre-Bourgeois',en:'A-740 N at ch. des Quatre-Bourgeois'},
+  {id:3568, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) tunnel Robert-Bourassa',  en:'A-740 S in tunnel Robert-Bourassa'},
+  {id:3569, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) tunnel Robert-Bourassa', en:'A-740 N in tunnel Robert-Bourassa'},
+  {id:3527, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / boul. du Versant-Nord', en:'A-740 S at boul. du Versant-Nord'},
+  {id:3528, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / boul. du Versant-Nord',en:'A-740 N at boul. du Versant-Nord'},
+  {id:3522, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / rue Léon-Harmel',       en:'A-740 S at rue Léon-Harmel'},
+  {id:3628, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / rue Léon-Harmel',      en:'A-740 N at rue Léon-Harmel'},
+  {id:3529, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / boul. Wilfrid-Hamel',  en:'A-740 N at boul. Wilfrid-Hamel'},
+  {id:3530, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / boul. Wilfrid-Hamel',   en:'A-740 S at boul. Wilfrid-Hamel'},
+  // ── QUÉBEC CITY — R-138 ───────────────────────────────────────────────────
+  {id:3955, r:'quebec', sub:'qc-r138', fr:'R-138 (dir. ouest) / ch. du Massif',       en:'R-138 W at ch. du Massif'},
+  {id:3956, r:'quebec', sub:'qc-r138', fr:'R-138 (dir. est) / ch. du Massif',         en:'R-138 E at ch. du Massif'},
+  {id:3996, r:'quebec', sub:'qc-r138', fr:'R-138 / Baie-Saint-Paul (Rang de la Martine)', en:'R-138 at Baie-Saint-Paul'},
+  {id:3951, r:'quebec', sub:'qc-r138', fr:'R-138 / Côte de l\'Église (Boischatel)',    en:'R-138 at Côte de l\'Église'},
+  {id:3952, r:'quebec', sub:'qc-r138', fr:'R-138 / rue Gagnon (Ste-Anne-de-Beaupré)',  en:'R-138 at Ste-Anne-de-Beaupré'},
+  {id:3544, r:'quebec', sub:'qc-r138', fr:'R-138 — Baie-Sainte-Catherine',             en:'R-138 at Baie-Sainte-Catherine'},
+  // ── ROUTE 138 ──────────────────────────────────────────────
+  {id:3406, r:'route138',    en:'Route 138 — pont Honoré-Mercier',   fr:'Route 138 — pont Honoré-Mercier',     lat:45.391, lng:-73.656},
+  {id:3405, r:'route138',    en:'Route 138 at rue Airlie',           fr:'Route 138 / rue Airlie',              lat:45.395, lng:-73.643},
+  {id:3404, r:'route138',    en:'Route 138 at rue Wanklyn',          fr:'Route 138 / rue Wanklyn',             lat:45.400, lng:-73.630},
+  {id:3403, r:'route138',    en:'Route 138 at rue Clément',          fr:'Route 138 / rue Clément',             lat:45.404, lng:-73.617},
+  {id:3361, r:'route138',    en:'Route 138 south of Saint-Pierre',   fr:'Route 138 sud de Saint-Pierre',       lat:45.453, lng:-73.571},
+  {id:3401, r:'route138',    en:'Route 138 — pont Le Gardeur',       fr:'Route 138 — pont Le Gardeur',         lat:45.763, lng:-73.458},
+  {id:3992, r:'route138',    en:'Route 138 — La Malbaie',            fr:'Route 138 — La Malbaie',              lat:47.649, lng:-70.163},
+  // ── SAGUENAY — LAC ST-JEAN ─────────────────────────────────
+  {id:3536, r:'saguenay',    en:'R-175 / Rive Sud',                  fr:'R-175 / Rive Sud',                    lat:47.800, lng:-71.250},
+  {id:3537, r:'saguenay',    en:'R-175 / Rive Sud (2)',              fr:'R-175 / Rive Sud (2)',                 lat:47.820, lng:-71.260},
+  {id:3538, r:'saguenay',    en:'R-175 / Rive Nord',                 fr:'R-175 / Rive Nord',                   lat:47.840, lng:-71.270},
+  {id:3539, r:'saguenay',    en:'R-175 / Rive Nord (2)',             fr:'R-175 / Rive Nord (2)',                lat:47.860, lng:-71.280},
+  {id:3890, r:'saguenay',    en:'R-169 Nord / R-172',               fr:'R-169 Nord / R-172',                  lat:48.420, lng:-71.870},
+  {id:3876, r:'saguenay',    en:'R-169 Sud / Sainte-Cécile',        fr:'R-169 Sud / Sainte-Cécile',           lat:48.560, lng:-71.680},
+  {id:3877, r:'saguenay',    en:'R-169 Nord / Sainte-Cécile',       fr:'R-169 Nord / Sainte-Cécile',          lat:48.580, lng:-71.670},
+  {id:3889, r:'saguenay',    en:'R-172 Est / R-169',                fr:'R-172 Est / R-169',                   lat:48.400, lng:-71.800},
+];
+
+const CAM_MAP = Object.fromEntries(cameras.map(c => [c.id, c]));
+let currentFilter = 'all';
+
+// ── Motion helpers ──────────────────────────────────────────
+const M = typeof Motion !== 'undefined' ? Motion : null;
+function mAnim(el, kf, opts){ if(!el||!M) return Promise.resolve(); try{return M.animate(el,kf,opts);}catch(e){return Promise.resolve();} }
+
+function animateCardsIn(){
+  document.querySelectorAll('.cam-card').forEach((card,i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(22px)';
+    mAnim(card, {opacity:[0,1], y:[22,0]}, {delay:i*0.04, duration:0.4, easing:[0.22,1,0.36,1]});
+  });
+}
+
+// ── Build card ──────────────────────────────────────────────
+function buildCard(cam){
+  const name = lang==='fr' ? cam.fr : cam.en;
+  const url  = Q511_VIDEO(cam.id);
+  const ts   = new Date().toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const noFeed = lang==='fr' ? 'Flux non disponible' : 'Feed unavailable';
+  const regionTag = cam.sub
+    ? cam.sub.replace('qc-','').toUpperCase()
+    : cam.r.toUpperCase();
+  return `<div class="cam-card" onclick="openCam(${cam.id})">
+    <div class="cam-viewport">
+      <video autoplay muted loop playsinline preload="none"
+        style="width:100%;height:100%;object-fit:cover;display:block"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <source src="${url}" type="video/mp4">
+      </video>
+      <div class="cam-placeholder" style="display:none">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+        <span style="font-size:0.6rem;opacity:0.6">${noFeed}</span>
+      </div>
+      <div class="cam-overlay"><span class="cam-live-badge"><span class="dot-live"></span>LIVE</span></div>
+      <div class="cam-bottom"><span class="cam-timestamp">${ts}</span></div>
+    </div>
+    <div class="cam-info">
+      <div class="cam-location">${name}</div>
+      <div class="cam-meta"><span>${regionTag}</span><span>#${cam.id}</span></div>
+    </div>
+  </div>`;
+}
+
+// ── Autoroute section header ────────────────────────────────
+const QC_SECTIONS = [
+  {sub:'qc-a40',  label:'Autoroute 40'},
+  {sub:'qc-a73',  label:'Autoroute 73'},
+  {sub:'qc-a440', label:'Autoroute 440'},
+  {sub:'qc-a540', label:'Autoroute 540'},
+  {sub:'qc-a573', label:'Autoroute 573'},
+  {sub:'qc-a740', label:'Autoroute 740'},
+  {sub:'qc-r138', label:'Route 138'},
+];
+
+function buildSectionHeader(label){
+  return `<div class="cam-section-header" style="
+    grid-column:1/-1;
+    font-family:var(--cond);
+    font-size:1rem;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--green);
+    padding:1rem 0 0.4rem;
+    border-bottom:1px solid var(--green-dim);
+    margin-bottom:0.5rem;
+  ">▸ ${label}</div>`;
+}
+
+// ── Render grid ─────────────────────────────────────────────
+function renderGrid(filter){
+  currentFilter = filter;
+  const grid  = document.getElementById('cameraGrid');
+
+  // Quebec grouped by autoroute
+  if(filter === 'quebec'){
+    let html = '';
+    QC_SECTIONS.forEach(sec => {
+      const cams = cameras.filter(c => c.sub === sec.sub);
+      if(!cams.length) return;
+      html += buildSectionHeader(sec.label);
+      html += cams.map(buildCard).join('');
+    });
+    grid.innerHTML = html;
+    requestAnimationFrame(animateCardsIn);
+    return;
+  }
+
+  // Sub-filter (single autoroute)
+  if(filter.startsWith('qc-')){
+    const cams = cameras.filter(c => c.sub === filter);
+    if(!cams.length){
+      grid.innerHTML = `<p style="color:var(--text-dim);font-family:var(--mono);font-size:0.8rem;padding:2rem;grid-column:1/-1">Aucune caméra.</p>`;
+      return;
+    }
+    grid.innerHTML = cams.map(buildCard).join('');
+    requestAnimationFrame(animateCardsIn);
+    return;
+  }
+
+  const shown = filter==='all' ? cameras : cameras.filter(c => c.r===filter);
+  if(!shown.length){
+    grid.innerHTML = `<p style="color:var(--text-dim);font-family:var(--mono);font-size:0.8rem;padding:2rem;grid-column:1/-1">${lang==='fr'?'Aucune caméra.':'No cameras.'}</p>`;
+    return;
+  }
+  grid.innerHTML = shown.map(buildCard).join('');
+  requestAnimationFrame(animateCardsIn);
+}
+
+// ── Open/close Quebec sub-filters ──────────────────────────
+function openQuebecFilters(btn){
+  // Mark parent button active
+  document.querySelectorAll('#mainFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Show sub-filter bar
+  const sub = document.getElementById('quebecSubFilters');
+  const grid = document.getElementById('cameraGrid');
+  if(sub.style.display === 'none'){
+    sub.style.display = 'flex';
+    mAnim(sub, {opacity:[0,1], y:[-6,0]}, {duration:0.25, easing:[0.22,1,0.36,1]});
+  }
+  // Reset sub-filter to "Toutes"
+  document.querySelectorAll('#quebecSubFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  sub.querySelector('.filter-btn').classList.add('active');
+  // Load all quebec cameras grouped
+  mAnim(grid, {opacity:[1,0], y:[0,-10]}, {duration:0.16}).then(()=>{
+    renderGrid('quebec');
+    mAnim(grid, {opacity:[0,1], y:[10,0]}, {duration:0.3, easing:[0.22,1,0.36,1]});
+  });
+}
+
+// ── Filter handler ──────────────────────────────────────────
+function filterCams(region, btn){
+  // Hide sub-filters if switching away from Quebec
+  if(!region.startsWith('qc-') && region !== 'quebec'){
+    const sub = document.getElementById('quebecSubFilters');
+    if(sub.style.display !== 'none'){
+      mAnim(sub, {opacity:[1,0], y:[0,-4]}, {duration:0.18}).then(()=>{ sub.style.display='none'; });
+    }
+    document.querySelectorAll('#mainFilters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else if(region.startsWith('qc-')){
+    // Sub-filter click
+    document.querySelectorAll('#quebecSubFilters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const grid = document.getElementById('cameraGrid');
+  grid.querySelectorAll('video').forEach(v => { v.pause(); v.src=''; });
+  mAnim(grid, {opacity:[1,0], y:[0,-10]}, {duration:0.16}).then(()=>{
+    renderGrid(region);
+    mAnim(grid, {opacity:[0,1], y:[10,0]}, {duration:0.3, easing:[0.22,1,0.36,1]});
+  });
+}
+
+// ── Open modal ──────────────────────────────────────────────
+function openCam(id){
+  const cam   = CAM_MAP[id];
+  if(!cam) return;
+  const name  = lang==='fr' ? cam.fr : cam.en;
+  const modal = document.getElementById('camModal');
+  document.getElementById('modalTitle').textContent = name;
+
+  const wrap = document.querySelector('.modal-img-wrap');
+  wrap.innerHTML = `<video autoplay muted loop playsinline
+    style="width:100%;height:100%;object-fit:cover;display:block">
+    <source src="${Q511_VIDEO(id)}" type="video/mp4">
+  </video>`;
+
+  const ts = new Date().toLocaleString('fr-CA');
+  const L = lang==='fr'
+    ?{reg:'Région',loc:'Localisation',coord:'Coordonnées',src:'Source',id:'ID caméra',upd:'Heure'}
+    :{reg:'Region',loc:'Location',    coord:'Coordinates',src:'Source',id:'Camera ID', upd:'Time'};
+  document.getElementById('modalMeta').innerHTML = `
+    <div><label>${L.id}</label>${id}</div>
+    <div><label>${L.reg}</label>${cam.r.toUpperCase()}</div>
+    <div><label>${L.loc}</label>${name}</div>
+    <div><label>${L.coord}</label>${cam.lat}°N, ${Math.abs(cam.lng)}°W</div>
+    <div><label>${L.src}</label>Transports Québec</div>
+    <div><label>${L.upd}</label>${ts}</div>`;
+
+  modal.classList.add('open');
+  mAnim(modal.firstElementChild, {opacity:[0,1], scale:[0.96,1], y:[16,0]}, {duration:0.32, easing:[0.22,1,0.36,1]});
+}
+
+function closeModal(){
+  const modal = document.getElementById('camModal');
+  mAnim(modal.firstElementChild, {opacity:[1,0], scale:[1,0.97], y:[0,8]}, {duration:0.2}).then(()=>{
+    modal.classList.remove('open');
+    const v = modal.querySelector('video'); if(v){ v.pause(); v.src=''; }
+  });
+}
+
+// ── INIT ────────────────────────────────────────────────────
+renderGrid('all');
+setLang(lang);
+
+
+</script>
+</body>
+</html>
