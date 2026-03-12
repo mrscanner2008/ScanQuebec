@@ -6,7 +6,63 @@
 <title>ScanQC — Scanner & Radio Communications</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js">
+// ── LIVEATC HTML5 PLAYER ──────────────────────────────────────────────────────
+const latcLabels = {
+  'cyqb2': {fr:'SOL / TOUR — CYQB', en:'GROUND / TOWER — CYQB', freq:'118.800 / 121.700 MHz · AM'},
+  'cyqb_app': {fr:'APP / DÉP 124.0 — CYQB', en:'APP / DEP 124.0 — CYQB', freq:'124.000 MHz · AM'},
+  'cyqb_app2': {fr:'APP / DÉP 127.85 — CYQB', en:'APP / DEP 127.85 — CYQB', freq:'127.850 MHz · AM'},
+  'cyqb_atis': {fr:'ATIS ANGLAIS — CYQB', en:'ATIS ENGLISH — CYQB', freq:'126.350 MHz · AM'},
+  'cyqb_atisfr': {fr:'ATIS FRANÇAIS — CYQB', en:'ATIS FRANÇAIS — CYQB', freq:'126.350 MHz · AM'},
+  'cyqb_fis': {fr:'FIS / SERVICE VOL — CYQB', en:'FLIGHT SERVICE — CYQB', freq:'126.700 MHz · AM'},
+};
+
+function selectLatcFeed(btn, url) {
+  document.querySelectorAll('.latc-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mount = url.split('/').pop();
+  const info  = latcLabels[mount] || {fr: mount.toUpperCase(), en: mount.toUpperCase(), freq: ''};
+  const lbl   = document.getElementById('latc-feed-label');
+  const freq  = document.getElementById('latc-freq-label');
+  if (lbl)  lbl.textContent = (lang === 'fr' ? info.fr : info.en);
+  if (freq) freq.textContent = info.freq;
+  const audio = document.getElementById('latcAudio');
+  if (audio) {
+    audio.pause();
+    audio.src = url;
+    audio.load();
+    // Don't autoplay — let user press play
+    updateLatcStatus();
+  }
+}
+function updateLatcStatus() {
+  const audio  = document.getElementById('latcAudio');
+  const status = document.getElementById('latc-status');
+  if (!audio || !status) return;
+  audio.addEventListener('playing', () => { status.textContent = lang==='fr' ? 'EN DIRECT' : 'LIVE'; status.style.color = 'var(--green)'; });
+  audio.addEventListener('pause',   () => { status.textContent = lang==='fr' ? 'ARRÊT' : 'STOPPED'; status.style.color = 'var(--text-dim)'; });
+  audio.addEventListener('waiting', () => { status.textContent = lang==='fr' ? 'CHARGEMENT…' : 'BUFFERING…'; status.style.color = 'var(--amber)'; });
+  audio.addEventListener('error',   () => { status.textContent = lang==='fr' ? 'HORS LIGNE' : 'OFFLINE'; status.style.color = 'var(--red)'; });
+}
+document.addEventListener('DOMContentLoaded', updateLatcStatus);
+
+
+// ── LAST UPDATED DATE ─────────────────────────────────────────────────────────
+(function() {
+  const el = document.getElementById('footer-updated');
+  if (!el) return;
+  const d = new Date(document.lastModified);
+  const opts = { year:'numeric', month:'long', day:'numeric' };
+  const locale = (typeof lang !== 'undefined' && lang === 'fr') ? 'fr-CA' : 'en-CA';
+  const fmt = new Intl.DateTimeFormat(locale, opts).format(d);
+  el.setAttribute('data-en', 'Updated: ' + new Intl.DateTimeFormat('en-CA', opts).format(d));
+  el.setAttribute('data-fr', 'Mis à jour : ' + new Intl.DateTimeFormat('fr-CA', opts).format(d));
+  el.textContent = (typeof lang !== 'undefined' && lang === 'fr')
+    ? 'Mis à jour : ' + new Intl.DateTimeFormat('fr-CA', opts).format(d)
+    : 'Updated: ' + new Intl.DateTimeFormat('en-CA', opts).format(d);
+})();
+
+</script>
 <style>
   :root {
     --black:#080c0a;--deep:#0a1210;--panel:#0f1a16;--card:#121f1a;--border:#1e3028;
@@ -15,6 +71,30 @@
     --text:#c8ddd5;--text-dim:#6a8a7a;
     --mono:'Share Tech Mono',monospace;--cond:'Barlow Condensed',sans-serif;--body:'Barlow',sans-serif;
   }
+  /* LIGHT THEME */
+  [data-theme="light"] {
+    --black:#ffffff;--deep:#f5f7f6;--panel:#eef2f0;--card:#e8edeb;--border:#c8d8d2;
+    --green:#00994d;--green-dim:#007a3d;--green-faint:rgba(0,153,77,0.09);--green-glow:rgba(0,153,77,0.18);
+    --amber:#b37400;--red:#cc1122;--cyan:#007a99;
+    --text:#111c17;--text-dim:#3d5c4e;
+  }
+  [data-theme="light"] body{background:#ffffff;color:var(--text)}
+  [data-theme="light"] body::before{display:none}
+  [data-theme="light"] nav{background:rgba(255,255,255,0.96);border-bottom-color:var(--border)}
+  [data-theme="light"] .nav-center a:hover,[data-theme="light"] .nav-center a.active{background:rgba(0,153,77,0.09);color:var(--green)}
+  [data-theme="light"] h1,[data-theme="light"] h2,[data-theme="light"] h3{color:#111c17}
+  [data-theme="light"] .scanner-card,[data-theme="light"] .freq-table td,[data-theme="light"] .cs-card,[data-theme="light"] .cool-card,[data-theme="light"] .webcam-live-card,[data-theme="light"] .amateur-club-card{background:#fff;border-color:var(--border)}
+  [data-theme="light"] .scanner-card:hover,[data-theme="light"] .cool-card:hover{background:#f0f7f4}
+  [data-theme="light"] .scanner-model,[data-theme="light"] .cs-card-title,[data-theme="light"] .cool-card-title,[data-theme="light"] .webcam-live-title{color:#111c17}
+  [data-theme="light"] .freq-table tr:hover td{background:rgba(0,153,77,0.06)}
+  [data-theme="light"] footer{background:#f5f7f6;border-top-color:var(--border)}
+  [data-theme="light"] .lang-btn:not(.active):hover{color:var(--green);background:var(--green-faint)}
+  [data-theme="light"] .btn{border-color:var(--green);color:var(--green)}
+  [data-theme="light"] .btn:hover{background:var(--green);color:#fff}
+  [data-theme="light"] .freq-hz{color:var(--green)}
+  [data-theme="light"] .tag.green{background:rgba(0,153,77,0.12);color:var(--green)}
+  [data-theme="light"] .stream-tab{background:#fff}
+  [data-theme="light"] .stream-tab.active{background:var(--panel);border-bottom-color:var(--green)}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{background:var(--black);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
@@ -32,6 +112,13 @@
   .lang-btn{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;padding:0.3rem 0.7rem;background:transparent;border:none;color:var(--text-dim);cursor:pointer;transition:all 0.2s;text-transform:uppercase}
   .lang-btn.active{background:var(--green);color:var(--black);font-weight:bold}
   .lang-btn:not(.active):hover{color:var(--green);background:var(--green-faint)}
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:all 0.25s;position:relative;overflow:hidden}
+  .theme-toggle:hover{border-color:var(--green);background:var(--green-faint)}
+  .theme-toggle .icon-dark,.theme-toggle .icon-light{position:absolute;transition:opacity 0.2s,transform 0.3s;line-height:1}
+  .theme-toggle .icon-light{opacity:0;transform:rotate(90deg) scale(0.5)}
+  .theme-toggle .icon-dark{opacity:1;transform:rotate(0deg) scale(1)}
+  [data-theme="light"] .theme-toggle .icon-dark{opacity:0;transform:rotate(-90deg) scale(0.5)}
+  [data-theme="light"] .theme-toggle .icon-light{opacity:1;transform:rotate(0deg) scale(1)}
 
   /* HERO */
   #home{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:6rem 4rem 4rem;position:relative;overflow:hidden}
@@ -209,8 +296,6 @@
     .lang-btn{padding:0.3rem 0.5rem}
   }
   /* STREAM PLAYER */
-  
-
   .stream-tabs{display:flex;gap:0;border:1px solid var(--border);margin-bottom:0;width:100%}
   .stream-tab{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:0.2rem;padding:1rem 1.4rem;background:var(--card);border:none;border-right:1px solid var(--border);cursor:pointer;transition:background 0.2s;text-align:left}
   .stream-tab:last-child{border-right:none}
@@ -300,6 +385,26 @@
   .webcam-play-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.7);text-transform:uppercase;white-space:nowrap;background:rgba(0,0,0,0.55);padding:0.2rem 0.6rem}
   .webcam-live-footer{padding:0.6rem 1.1rem;font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);display:flex;gap:1rem;align-items:center}
   @media(max-width:640px){.webcam-live-grid{grid-template-columns:1fr}}
+  /* ProScan Web Server panel */
+  .proscan-url-bar{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);background:var(--deep);border:2px solid var(--red);box-shadow:0 0 8px rgba(255,51,68,0.3)}
+  .proscan-url-prefix{font-family:var(--mono);font-size:0.75rem;color:#fff;padding:0 0.7rem;background:var(--red);border-right:2px solid var(--red);height:44px;display:flex;align-items:center;flex-shrink:0;letter-spacing:0.05em;font-weight:bold}
+  .proscan-url-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:0.8rem;color:#fff;padding:0 1rem;height:44px;min-width:0}
+  .proscan-url-input::placeholder{color:rgba(106,138,122,0.4)}
+  .proscan-url-go{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;padding:0 1.2rem;height:44px;background:var(--green);color:var(--black);border:none;cursor:pointer;font-weight:bold;flex-shrink:0;transition:background 0.2s}
+  .proscan-url-go:hover{background:#00e577}
+  .proscan-url-clear{font-family:var(--mono);font-size:0.8rem;padding:0 0.9rem;height:44px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:color 0.2s;flex-shrink:0}
+  .proscan-url-clear:hover{color:var(--red)}
+  .proscan-frame-wrap{position:relative;min-height:520px;background:var(--deep)}
+  .proscan-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;padding:3rem 2rem;text-align:center;min-height:520px}
+  .proscan-ph-icon{font-size:3.5rem;opacity:0.15}
+  .proscan-ph-title{font-family:var(--cond);font-size:1.4rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#fff}
+  .proscan-ph-desc{font-size:0.9rem;color:var(--text-dim);max-width:420px;line-height:1.65}
+  .proscan-ph-steps{display:flex;flex-direction:column;gap:0.6rem;width:100%;max-width:420px;text-align:left}
+  .proscan-ph-step{display:flex;align-items:flex-start;gap:0.8rem;font-size:0.82rem;color:var(--text-dim);background:var(--card);border:1px solid var(--border);padding:0.6rem 0.9rem}
+  .proscan-step-n{font-family:var(--mono);font-size:0.7rem;color:var(--green);border:1px solid rgba(0,255,136,0.3);width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .proscan-ph-link{font-family:var(--mono);font-size:0.72rem;color:var(--green-dim);text-decoration:none;border:1px solid rgba(0,255,136,0.2);padding:0.3rem 0.8rem;transition:all 0.2s}
+  .proscan-ph-link:hover{color:var(--green);border-color:var(--green)}
+  .proscan-frame{width:100%;min-height:520px;border:none;display:block}
   /* Scanner audio viz */
   .scanner-viz{width:100%;max-width:700px;background:var(--panel);border:1px solid var(--border);padding:1.5rem;margin-top:1.5rem}
   .scanner-viz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase}
@@ -329,9 +434,15 @@
     <li><a href="#" onclick="showPage('coolstuff')"   id="nav-coolstuff"   data-en="Cool Stuff"   data-fr="Liens Cool">Cool Stuff</a></li>
     <li><a href="#" onclick="showPage('about')"       id="nav-about"       data-en="About"        data-fr="À propos">About</a></li>
   </ul>
-  <div class="lang-toggle">
-    <button class="lang-btn"        onclick="setLang('en')" id="btn-en">EN</button>
-    <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">FR</button>
+  <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer le thème / Toggle theme">
+      <span class="icon-dark">🌙</span>
+      <span class="icon-light">☀️</span>
+    </button>
+    <div class="lang-toggle">
+      <button class="lang-btn"        onclick="setLang('en')" id="btn-en">EN</button>
+      <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">FR</button>
+    </div>
   </div>
 </nav>
 
@@ -396,7 +507,7 @@
       <a href="https://uniden.com/products/sds200?srsltid=AfmBOoqykUUllI4a4eFYkCHvGwlaCCH8NmqQ1WKJBZa7XpQR9BfUvU-h" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v3</div>
+      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v5</div>
       <div class="scanner-spec" data-en="Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS." data-fr="Dongle radio logicielle couvrant 500 kHz – 1,75 GHz. Utilisé avec SDR# ou GQRX pour la surveillance large bande, le décodage ADS-B et ACARS.">Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS.</div>
       <div class="tag-list"><span class="tag cyan">SDR</span><span class="tag">ADS-B</span><span class="tag">ACARS</span><span class="tag green">0.5–1750 MHz</span></div>
       <a href="https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
@@ -666,17 +777,19 @@
           <div class="amateur-club-call">CRAQ</div>
           <div class="amateur-club-name" data-en="Club de Radioamateurs de la région de Québec" data-fr="Club de Radioamateurs de la région de Québec">Club de Radioamateurs de la région de Québec</div>
           <div class="amateur-club-detail">VE2RQR · Université Laval · Broadcastify</div>
-          <a href="https://www.craquebecinik.ca" target="_blank" class="amateur-club-link">craquebecinik.ca ↗</a>
+          <a href="https://www.craq.club" target="_blank" class="amateur-club-link">craq.club ↗</a>
         </div>
         <div class="amateur-club-card">
           <div class="amateur-club-call">ARES Québec</div>
           <div class="amateur-club-name">VE2CSQ — Association Radio Expérimentale du Sud de Québec</div>
           <div class="amateur-club-detail" data-en="Emergency communications, Broadcastify feed active" data-fr="Communications d'urgence, flux Broadcastify actif">Communications d'urgence · flux Broadcastify actif</div>
+        <a href="https://www.aresqc.org/" target="_blank" class="amateur-club-link">ARES Québec ↗</a>
         </div>
         <div class="amateur-club-card">
           <div class="amateur-club-call">CANWARN</div>
           <div class="amateur-club-name">VE2CWQ — Réseau Canwarn-Québec</div>
           <div class="amateur-club-detail" data-en="Weather observation network — active during severe weather" data-fr="Réseau d'observation météo — actif lors de temps violent">Réseau météo · actif lors de temps violent</div>
+        <a href="https://www.ve2cwq.ca/" target="_blank" class="amateur-club-link">CANWARN ↗</a>
         </div>
       </div>
 
@@ -856,7 +969,6 @@
         <li><a href="https://www.diamondantenna.net/d130j.html" target="_blank" rel="noopener" class="gear-link">Diamond D-130J Discone</a> — 25–1300 MHz</li>
         <li><a href="https://www.virtualradarserver.co.uk" target="_blank" rel="noopener" class="gear-link">Virtual Radar Server</a> — <span data-en="ADS-B tracking" data-fr="suivi ADS-B">suivi ADS-B</span></li>
         <li><a href="https://www.dsdplus.com" target="_blank" rel="noopener" class="gear-link">DSD+</a> — <span data-en="digital voice decoder" data-fr="décodeur vocal numérique">décodeur vocal numérique</span></li>
-        <li><a href="https://github.com/lwvmobile/dsd-fme" target="_blank" rel="noopener" class="gear-link">DSD-FME</a> — <span data-en="Best digital voice decoder" data-fr="Meilleur décodeur vocal numérique">Meilleur décodeur vocal numérique</span></li>
         <li><a href="https://github.com/robotastic/trunk-recorder" target="_blank" rel="noopener" class="gear-link">trunk-recorder</a> — <span data-en="P25 logging" data-fr="journalisation P25">journalisation P25</span></li>
         <li><a href="https://www.unitrunker.com" target="_blank" rel="noopener" class="gear-link">Unitrunker</a> — <span data-en="trunking follow" data-fr="suivi de trunk">suivi de trunk</span></li>
         <li><a href="https://gqrx.dk" target="_blank" rel="noopener" class="gear-link">GQRX</a> — <span data-en="SDR on Linux workstation" data-fr="SDR sur station Linux">SDR sur station Linux</span></li>
@@ -1001,9 +1113,9 @@
       <span class="stab-sub" data-en="CYQB Tower · Approach · ATIS" data-fr="Tour CYQB · Approche · ATIS">CYQB Tower · Approach · ATIS</span>
     </button>
     <button class="stream-tab" onclick="switchStream('sdr',this)">
-      <span class="stab-icon">📡</span>
-      <span class="stab-label" data-en="RTL-SDR Direct" data-fr="RTL-SDR Direct">RTL-SDR Direct</span>
-      <span class="stab-sub" data-en="Your Icecast stream" data-fr="Votre flux Icecast">Your Icecast stream</span>
+      <span class="stab-icon">🖥️</span>
+      <span class="stab-label" data-en="ProScan" data-fr="ProScan">ProScan</span>
+      <span class="stab-sub" data-en="Web Server Player" data-fr="Lecteur Web Serveur">Lecteur Web Serveur</span>
     </button>
   </div>
 
@@ -1032,130 +1144,125 @@
     <div class="stream-panel-header">
       <span class="stream-panel-title">LiveATC — CYQB (Québec Jean-Lesage)</span>
       <div class="stream-panel-actions">
-        <span class="stream-note" data-en="Opens in new tab — LiveATC blocks embedding" data-fr="Ouvre dans un nouvel onglet — LiveATC bloque l'intégration">Opens in new tab — LiveATC blocks embedding</span>
+        <span class="stream-note" style="color:var(--green)" data-en="● HTML5 Audio — select a feed below" data-fr="● Audio HTML5 — choisissez un flux ci-dessous">● Audio HTML5 — choisissez un flux ci-dessous</span>
       </div>
     </div>
-    <div class="latc-feed-grid">
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+
+    <!-- Feed selector buttons -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;padding:1rem 1.2rem;border-bottom:1px solid var(--border);background:var(--deep)">
+      <button class="latc-btn active" onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb2')"      data-en="Ground / Tower" data-fr="Sol / Tour">Sol / Tour</button>
+      <button class="latc-btn"        onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb_app')"   data-en="App/Dep 124.0" data-fr="App/Dép 124.0">App/Dép 124.0</button>
+      <button class="latc-btn"        onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb_app2')"  data-en="App/Dep 127.85" data-fr="App/Dép 127.85">App/Dép 127.85</button>
+      <button class="latc-btn"        onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb_atis')"  data-en="ATIS English" data-fr="ATIS Anglais">ATIS Anglais</button>
+      <button class="latc-btn"        onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb_atisfr')" data-en="ATIS Français" data-fr="ATIS Français">ATIS Français</button>
+      <button class="latc-btn"        onclick="selectLatcFeed(this,'https://d.liveatc.net/cyqb_fis')"   data-en="Flight Service (FIS)" data-fr="Service de vol (FIS)">FIS 126.7</button>
+    </div>
+
+    <!-- HTML5 Audio player -->
+    <div style="padding:1.2rem 1.4rem;background:var(--panel);display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+      <div style="display:flex;flex-direction:column;gap:0.25rem;min-width:160px">
+        <div id="latc-feed-label" style="font-family:var(--mono);font-size:0.68rem;color:var(--green);letter-spacing:0.1em">SOL / TOUR — CYQB</div>
+        <div id="latc-freq-label" style="font-family:var(--mono);font-size:0.6rem;color:var(--text-dim)">118.800 / 121.700 MHz · AM</div>
+      </div>
+      <audio id="latcAudio" controls style="flex:1;min-width:240px;height:36px;accent-color:var(--green);filter:invert(1) hue-rotate(100deg)">
+        <source src="https://d.liveatc.net/cyqb2" type="audio/mpeg">
+        <span data-en="Your browser does not support HTML5 audio." data-fr="Votre navigateur ne supporte pas l'audio HTML5.">Votre navigateur ne supporte pas l'audio HTML5.</span>
+      </audio>
+      <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:flex-end">
+        <div id="latc-status" style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.15em;color:var(--text-dim)">ARRÊT</div>
+        <a id="latc-ext-link" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" style="font-family:var(--mono);font-size:0.6rem;color:var(--green-dim);text-decoration:none" data-en="↗ liveatc.net" data-fr="↗ liveatc.net">↗ liveatc.net</a>
+      </div>
+    </div>
+
+    <!-- Feed info grid -->
+    <div class="latc-feed-grid" style="pointer-events:none;opacity:0.6;font-size:0.8rem">
+      <div class="latc-feed-card">
         <div class="latc-feed-icon">🗼</div>
-        <div class="latc-feed-name" data-en="Ground / Tower" data-fr="Sol / Tour">Ground / Tower</div>
+        <div class="latc-feed-name" data-en="Ground / Tower" data-fr="Sol / Tour">Sol / Tour</div>
         <div class="latc-feed-freq">118.800 / 121.700 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-mode">AM · cyqb2</div>
+      </div>
+      <div class="latc-feed-card">
         <div class="latc-feed-icon">📡</div>
-        <div class="latc-feed-name" data-en="App / Dep — 124.0 MHz" data-fr="App / Dep — 124.0 MHz">App / Dep — 124.0 MHz</div>
+        <div class="latc-feed-name" data-en="App / Dep" data-fr="App / Dép">App / Dép</div>
         <div class="latc-feed-freq">124.000 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-mode">AM · cyqb_app</div>
+      </div>
+      <div class="latc-feed-card">
         <div class="latc-feed-icon">📡</div>
-        <div class="latc-feed-name" data-en="App / Dep — 127.85 MHz" data-fr="App / Dep — 127.85 MHz">App / Dep — 127.85 MHz</div>
+        <div class="latc-feed-name" data-en="App / Dep" data-fr="App / Dép">App / Dép</div>
         <div class="latc-feed-freq">127.850 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
-        <div class="latc-feed-icon">
-          <svg width="32" height="21" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg" style="display:block">
-            <rect width="32" height="21" fill="#003DA5"/>
-            <rect x="8" width="16" height="21" fill="white"/>
-            <rect y="8" width="32" height="5" fill="white"/>
-            <!-- fleurs-de-lis simplified -->
-            <text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-          </svg>
-        </div>
+        <div class="latc-feed-mode">AM · cyqb_app2</div>
+      </div>
+      <div class="latc-feed-card">
+        <div class="latc-feed-icon"><svg width="28" height="19" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="21" fill="#003DA5"/><rect x="8" width="16" height="21" fill="white"/><rect y="8" width="32" height="5" fill="white"/><text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text></svg></div>
         <div class="latc-feed-name">ATIS English</div>
         <div class="latc-feed-freq">126.350 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
-        <div class="latc-feed-icon">
-          <svg width="32" height="21" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg" style="display:block">
-            <rect width="32" height="21" fill="#003DA5"/>
-            <rect x="8" width="16" height="21" fill="white"/>
-            <rect y="8" width="32" height="5" fill="white"/>
-            <text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-            <text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
-          </svg>
-        </div>
+        <div class="latc-feed-mode">AM · cyqb_atis</div>
+      </div>
+      <div class="latc-feed-card">
+        <div class="latc-feed-icon"><svg width="28" height="19" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="21" fill="#003DA5"/><rect x="8" width="16" height="21" fill="white"/><rect y="8" width="32" height="5" fill="white"/><text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text><text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text></svg></div>
         <div class="latc-feed-name">ATIS Français</div>
         <div class="latc-feed-freq">126.350 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
-      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-mode">AM · cyqb_atisfr</div>
+      </div>
+      <div class="latc-feed-card">
         <div class="latc-feed-icon">✈️</div>
-        <div class="latc-feed-name" data-en="Flight Service (FIS)" data-fr="Service de vol (FIS)">Flight Service (FIS)</div>
+        <div class="latc-feed-name" data-en="Flight Service (FIS)" data-fr="Service de vol (FIS)">FIS</div>
         <div class="latc-feed-freq">126.700 MHz</div>
-        <div class="latc-feed-mode">AM</div>
-        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
-      </a>
+        <div class="latc-feed-mode">AM · cyqb_fis</div>
+      </div>
     </div>
-    <div style="padding:1rem 1.2rem;background:var(--deep);border-top:1px solid var(--border);font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);line-height:1.7">
-      <span data-en="LiveATC.net sets X-Frame-Options: DENY on all pages and their embed player uses discontinued Flash — direct embedding is not technically possible. Links open the CYQB feed page in a new tab." data-fr="LiveATC.net définit X-Frame-Options: DENY sur toutes ses pages et son lecteur intégré utilise Flash abandonné — l'intégration directe n'est pas techniquement possible. Les liens ouvrent la page CYQB dans un nouvel onglet.">LiveATC.net sets X-Frame-Options: DENY on all pages and their embed player uses discontinued Flash — direct embedding is not technically possible. Links open the CYQB feed page in a new tab.</span>
+    <div style="padding:0.8rem 1.2rem;background:var(--deep);border-top:1px solid var(--border);font-family:var(--mono);font-size:0.58rem;color:rgba(106,138,122,0.45);line-height:1.7">
+      <span data-en="Streams from d.liveatc.net — HTML5 audio via direct Icecast MP3 mount. If a feed is offline or returns silence, the stream may be temporarily down. LiveATC.net terms: streams may not be used in commercial third-party products." data-fr="Flux depuis d.liveatc.net — audio HTML5 via montage Icecast MP3 direct. Si un flux est hors ligne ou silencieux, il est peut-être temporairement indisponible. Conditions LiveATC.net : les flux ne peuvent être utilisés dans des produits tiers commerciaux.">Flux depuis d.liveatc.net — audio HTML5 direct. Si un flux est silencieux, il est peut-être temporairement hors ligne.</span>
     </div>
   </div>
 
-  <!-- RTL-SDR PANEL -->
+    <!-- RTL-SDR PANEL -->
   <div class="stream-panel hidden" id="panel-sdr">
     <div class="stream-panel-header">
-      <span class="stream-panel-title" data-en="RTL-SDR v3 — Direct Icecast Stream" data-fr="RTL-SDR v3 — Flux Icecast Direct">RTL-SDR v3 — Direct Icecast Stream</span>
+      <span class="stream-panel-title" data-en="ProScan — Web Server Player" data-fr="ProScan — Lecteur Web Serveur">ProScan — Lecteur Web Serveur</span>
       <div class="stream-panel-actions">
-        <span class="stream-note" style="color:var(--amber)" data-en="⚠ Paste your Icecast URL below to connect" data-fr="⚠ Collez votre URL Icecast ci-dessous">⚠ Paste your Icecast URL below to connect</span>
+        <span class="stream-note" style="color:var(--green)" data-en="● Enter your ProScan Web Server URL below" data-fr="● Entrez l'URL de votre serveur Web ProScan ci-dessous">● Entrez l'URL de votre serveur Web ProScan ci-dessous</span>
       </div>
     </div>
-    <div class="sdr-player-wrap">
-      <canvas id="scannerWave" height="64" style="width:100%;display:block;background:var(--panel);border-bottom:1px solid var(--border)"></canvas>
-      <div class="sdr-status-bar">
-        <div class="sdr-freq-display" id="sdrFreqDisplay">— — — MHz</div>
-        <div class="sdr-status-pill" id="sdrStatus">OFFLINE</div>
-        <div style="display:flex;align-items:center;gap:0.6rem;margin-left:auto">
-          <label style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;color:var(--text-dim)" data-en="VOL" data-fr="VOL">VOL</label>
-          <input type="range" min="0" max="100" value="80" id="sdrVol" class="sdr-range" oninput="setSdrVol(this.value)">
+
+    <!-- URL input bar -->
+    <div class="proscan-url-bar">
+      <span class="proscan-url-prefix">http://</span>
+      <input type="text" id="proscanUrlInput" class="proscan-url-input"
+             placeholder="192.168.1.x:8080  ou  monserveur.ddns.net:8080"
+             autocomplete="off" spellcheck="false">
+      <button class="proscan-url-go" onclick="loadProscan()" data-en="▶ CONNECT" data-fr="▶ CONNECTER">▶ CONNECTER</button>
+      <button class="proscan-url-clear" onclick="clearProscan()" title="Clear">✕</button>
+    </div>
+
+    <!-- iframe player area -->
+    <div class="proscan-frame-wrap" id="proscanWrap">
+      <div class="proscan-placeholder" id="proscanPlaceholder">
+        <div class="proscan-ph-icon">🖥️</div>
+        <div class="proscan-ph-title" data-en="ProScan Web Server" data-fr="Serveur Web ProScan">Serveur Web ProScan</div>
+        <div class="proscan-ph-desc" data-en="Enter the IP address and port of your ProScan Web Server above, then click Connect." data-fr="Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.">Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.</div>
+        <div class="proscan-ph-steps">
+          <div class="proscan-ph-step"><span class="proscan-step-n">1</span><span data-en="In ProScan, enable Web Server under Scanner menu" data-fr="Dans ProScan, activez le serveur Web sous le menu Scanner">Dans ProScan, activez le serveur Web sous le menu Scanner</span></div>
+          <div class="proscan-ph-step"><span class="proscan-step-n">2</span><span data-en="Note the IP and port shown in ProScan (default 8080)" data-fr="Notez l'IP et le port affichés dans ProScan (défaut 8080)">Notez l'IP et le port affichés dans ProScan (défaut 8080)</span></div>
+          <div class="proscan-ph-step"><span class="proscan-step-n">3</span><span data-en="Enter it above and click Connect — the ProScan player will load here" data-fr="Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici">Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici</span></div>
         </div>
+        <a href="https://www.proscan.org" target="_blank" rel="noopener" class="proscan-ph-link">↗ proscan.org</a>
       </div>
-      <div class="sdr-ch-label" data-en="// SELECT CHANNEL" data-fr="// CHOISIR CANAL">// SELECT CHANNEL</div>
-      <div class="sdr-ch-grid">
-        <button class="sdr-ch-btn" onclick="selectSdrCh('154.220','SQ D3 Lac-Beauport','FM',this)"><span class="sdr-ch-hz">154.220</span><span class="sdr-ch-name" data-en="SQ D3 Lac-Beauport" data-fr="SQ D3 Lac-Beauport">SQ D3 Lac-Beauport</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('166.635','SQ D3 Jacques-Cartier','FM',this)"><span class="sdr-ch-hz">166.635</span><span class="sdr-ch-name" data-en="SQ D3 Jacques-Cartier" data-fr="SQ D3 Jacques-Cartier">SQ D3 Jacques-Cartier</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('155.790','Incendie Beaupré','FM',this)"><span class="sdr-ch-hz">155.790</span><span class="sdr-ch-name" data-en="Incendie Beaupré" data-fr="Incendie Beaupré">Incendie Beaupré</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('423.2125','Ambulance QC-Métro','FM',this)"><span class="sdr-ch-hz">423.2125</span><span class="sdr-ch-name" data-en="Ambulance QC-Métro" data-fr="Ambulance QC-Métro">Ambulance QC-Métro</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('119.500','YQB Approach','AM',this)"><span class="sdr-ch-hz">119.500</span><span class="sdr-ch-name" data-en="YQB Approach" data-fr="YQB Approche">YQB Approach</span><span class="sdr-ch-mode">AM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('160.815','CN Rail Québec Sub','FM',this)"><span class="sdr-ch-hz">160.815</span><span class="sdr-ch-name" data-en="CN Rail Québec Sub" data-fr="CN Rail Sub Québec">CN Rail Québec Sub</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('453.050','RTC Bus Québec','FM',this)"><span class="sdr-ch-hz">453.050</span><span class="sdr-ch-name">RTC Bus Québec</span><span class="sdr-ch-mode">FM</span></button>
-        <button class="sdr-ch-btn" onclick="selectSdrCh('146.940','VE2RQB Répéteur','FM',this)"><span class="sdr-ch-hz">146.940</span><span class="sdr-ch-name" data-en="VE2RQB Repeater" data-fr="Répéteur VE2RQB">VE2RQB Repeater</span><span class="sdr-ch-mode">FM</span></button>
-      </div>
-      <audio id="sdrAudio" preload="none"></audio>
-      <div class="sdr-url-config">
-        <div class="sdr-url-label" data-en="// Icecast stream URL — paste your rtl_fm → icecast2 mount URL" data-fr="// URL flux Icecast — collez l'URL de montage rtl_fm → icecast2">// Icecast stream URL — paste your rtl_fm → icecast2 mount URL</div>
-        <div class="sdr-url-row">
-          <input type="text" id="sdrUrlInput" class="sdr-url-input" placeholder="http://your-server:8000/qc-154220.mp3">
-          <button class="sdr-url-apply" onclick="applySdrUrl()" data-en="▶ CONNECT" data-fr="▶ CONNECTER">▶ CONNECT</button>
-        </div>
-        <div class="sdr-url-hint">
-          <span data-en="Setup:" data-fr="Config :">Setup:</span>
-          <code>rtl_fm -f 154220000 -M fm -s 200000 -r 48000 - | ffmpeg -i pipe:0 -acodec libmp3lame -ab 32k -f mp3 icecast://source:pass@localhost:8000/stream.mp3</code>
-        </div>
-      </div>
+      <iframe id="proscanFrame" class="proscan-frame hidden" src="" allow="autoplay" allowfullscreen></iframe>
     </div>
   </div>
-
 </section>
 </div>
 
 <footer>
   <span>ScanQC — Québec, Québec</span>
   <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);text-align:center;">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
-  <span id="footer-camera-credit">Données caméras : <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
+  <span style="display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem">
+    <span id="footer-camera-credit">Données caméras : <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
+    <span id="footer-updated" style="font-size:0.6rem;color:rgba(106,138,122,0.45);letter-spacing:0.08em"></span>
+  </span>
 </footer>
 
 <div class="modal-overlay" id="camModal" onclick="if(event.target===this)closeModal()">
@@ -1172,6 +1279,20 @@
 </div>
 
 <script>
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+(function() {
+  const saved = localStorage.getItem('scanqc-theme') || 'dark';
+  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+})();
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  if (next === 'dark') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', 'light');
+  localStorage.setItem('scanqc-theme', next);
+}
+
 // ── LANGUAGE ──────────────────────────────────────────────
 let lang = localStorage.getItem('scanqc-lang') || 'fr';
 
@@ -1952,6 +2073,46 @@ function drawSdrWave(){
 
 // Init scanner wave immediately (idle mode)
 drawSdrWave();
+
+
+// ── PROSCAN WEB SERVER PLAYER ─────────────────────────────────────────────────
+function loadProscan() {
+  const raw = document.getElementById('proscanUrlInput').value.trim();
+  if (!raw) return;
+  // Normalise: strip leading http:// or https:// if user pasted the full URL
+  const clean = raw.replace(/^https?:\/\//i, '');
+  const url = 'http://' + clean;
+  const frame = document.getElementById('proscanFrame');
+  const placeholder = document.getElementById('proscanPlaceholder');
+  if (!frame) return;
+  frame.src = url;
+  frame.classList.remove('hidden');
+  if (placeholder) placeholder.style.display = 'none';
+  // Remember URL
+  try { localStorage.setItem('scanqc-proscan-url', clean); } catch(e) {}
+}
+function clearProscan() {
+  const frame = document.getElementById('proscanFrame');
+  const placeholder = document.getElementById('proscanPlaceholder');
+  const input = document.getElementById('proscanUrlInput');
+  if (frame) { frame.src = ''; frame.classList.add('hidden'); }
+  if (placeholder) placeholder.style.display = '';
+  if (input) input.value = '';
+  try { localStorage.removeItem('scanqc-proscan-url'); } catch(e) {}
+}
+// Restore saved URL on load
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const saved = localStorage.getItem('scanqc-proscan-url');
+    const input = document.getElementById('proscanUrlInput');
+    if (saved && input) { input.value = saved; }
+  } catch(e) {}
+});
+// Allow Enter key in URL field
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('proscanUrlInput');
+  if (input) input.addEventListener('keydown', function(e) { if (e.key === 'Enter') loadProscan(); });
+});
 
 </script>
 </body>
