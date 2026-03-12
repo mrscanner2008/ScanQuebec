@@ -97,6 +97,29 @@
   .freq-type{color:var(--text-dim)}
   .dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite;margin-right:0.4rem}
   .dot-inactive{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-dim);margin-right:0.4rem}
+  .freq-section-head{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--green);border-bottom:1px solid var(--border);padding-bottom:0.5rem;margin-bottom:0.8rem}
+  .amateur-club-card{background:var(--panel);border:1px solid var(--border);padding:1rem 1.2rem;display:flex;flex-direction:column;gap:0.3rem;transition:border-color 0.2s}
+  .amateur-club-card:hover{border-color:var(--green)}
+  .amateur-club-call{font-family:var(--mono);font-size:0.95rem;color:var(--green);font-weight:700}
+  .amateur-club-name{font-size:0.85rem;color:var(--text)}
+  .amateur-club-detail{font-size:0.75rem;color:var(--text-dim)}
+  .amateur-club-link{font-family:var(--mono);font-size:0.75rem;color:var(--green-dim);text-decoration:none}
+  .amateur-club-link:hover{color:var(--green)}
+  .amateur-resource-link{color:var(--green-dim);text-decoration:none;font-family:var(--mono);font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid rgba(30,48,40,0.4);display:block;transition:color 0.15s}
+  .amateur-resource-link:hover{color:var(--green)}
+  /* Cool Stuff page */
+  .cool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;width:100%;margin-top:1rem}
+  .cool-section-label{grid-column:1/-1;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--green);border-bottom:1px solid var(--border);padding-bottom:0.5rem;margin-top:1.5rem}
+  .cool-section-label:first-child{margin-top:0}
+  .cool-card{background:var(--card);border:1px solid var(--border);padding:1.4rem;display:flex;flex-direction:column;gap:0.5rem;text-decoration:none;transition:border-color 0.2s,background 0.2s;cursor:pointer}
+  .cool-card:hover{border-color:var(--green);background:rgba(0,255,136,0.03)}
+  .cool-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem}
+  .cool-card-icon{font-size:1.5rem;line-height:1}
+  .cool-card-badge{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.18em;color:var(--green-dim);border:1px solid rgba(0,255,136,0.25);padding:0.12rem 0.45rem}
+  .cool-card-title{font-family:var(--cond);font-size:1rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;line-height:1.2}
+  .cool-card-desc{font-size:0.8rem;color:var(--text-dim);line-height:1.55;flex:1}
+  .cool-card-url{font-family:var(--mono);font-size:0.68rem;color:var(--green-dim);margin-top:0.3rem}
+  .cool-card:hover .cool-card-url{color:var(--green)}
   .spectrum-bar-wrap{background:var(--panel);border:1px solid var(--border);padding:1.5rem}
   .spectrum-title{font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1.2rem}
   .spectrum-bar{display:flex;align-items:flex-end;gap:3px;height:80px;margin-bottom:0.5rem}
@@ -142,7 +165,7 @@
   .gear-list li::before{content:'►';color:var(--green);font-size:0.55rem;flex-shrink:0}
 
   /* FOOTER */
-  footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:Red(--text-dim)}
+  footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim)}
   footer a{color:var(--text-dim);text-decoration:none}
   footer a:hover{color:var(--green)}
 
@@ -181,6 +204,108 @@
     .nav-center a{font-size:0.62rem;padding:0.35rem 0.35rem}
     .lang-btn{padding:0.3rem 0.5rem}
   }
+  /* STREAM PLAYER */
+  .stream-tabs{display:flex;gap:0;border:1px solid var(--border);margin-bottom:0;width:100%}
+  .stream-tab{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:0.2rem;padding:1rem 1.4rem;background:var(--card);border:none;border-right:1px solid var(--border);cursor:pointer;transition:background 0.2s;text-align:left}
+  .stream-tab:last-child{border-right:none}
+  .stream-tab:hover{background:#161f1b}
+  .stream-tab.active{background:var(--panel);border-bottom:2px solid var(--green)}
+  .stab-icon{font-size:1.3rem;line-height:1}
+  .stab-label{font-family:var(--cond);font-weight:700;font-size:0.95rem;letter-spacing:0.08em;text-transform:uppercase;color:#fff}
+  .stab-sub{font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.08em}
+  .stream-panel{border:1px solid var(--border);border-top:none;background:var(--panel)}
+  .stream-panel.hidden{display:none}
+  .stream-panel-header{display:flex;justify-content:space-between;align-items:center;padding:0.7rem 1.2rem;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:0.5rem}
+  .stream-panel-title{font-family:var(--mono);font-size:0.72rem;color:var(--green);letter-spacing:0.12em}
+  .stream-panel-actions{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+  .stream-note{font-family:var(--mono);font-size:0.62rem;color:var(--amber);letter-spacing:0.08em}
+  .stream-ext-link{font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);text-decoration:none;border:1px solid var(--border);padding:0.25rem 0.6rem;letter-spacing:0.1em;transition:all 0.2s}
+  .stream-ext-link:hover{color:var(--green);border-color:rgba(0,255,136,0.3)}
+  .stream-frame-wrap{position:relative;height:560px;overflow:hidden}
+  .stream-frame-wrap iframe{width:100%;height:100%;border:none;display:block;background:#fff}
+  .latc-btn{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:all 0.2s}
+  .latc-btn:hover,.latc-btn.active{background:var(--green-faint);color:var(--green);border-color:rgba(0,255,136,0.35)}
+  .latc-feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+  .latc-feed-card{display:flex;flex-direction:column;gap:0.35rem;padding:1.4rem;background:var(--card);text-decoration:none;transition:background 0.18s;cursor:pointer}
+  .latc-feed-card:hover{background:#161f1b}
+  .latc-feed-card:hover .latc-feed-listen{color:var(--green)}
+  .latc-feed-icon{font-size:1.5rem;line-height:1;margin-bottom:0.3rem}
+  .latc-feed-name{font-family:var(--cond);font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#fff}
+  .latc-feed-freq{font-family:var(--mono);font-size:0.72rem;color:var(--green)}
+  .latc-feed-mode{font-family:var(--mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.1em}
+  .latc-feed-listen{font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.1em;margin-top:0.5rem;transition:color 0.2s}
+  /* SDR player */
+  .sdr-player-wrap{display:flex;flex-direction:column}
+  .sdr-status-bar{display:flex;align-items:center;gap:1.2rem;padding:0.7rem 1.2rem;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .sdr-freq-display{font-family:var(--mono);font-size:1.4rem;color:var(--green);letter-spacing:0.1em;min-width:140px}
+  .sdr-status-pill{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;padding:0.25rem 0.7rem;border:1px solid rgba(255,170,0,0.4);color:var(--amber);text-transform:uppercase}
+  .sdr-status-pill.live{border-color:rgba(0,255,136,0.4);color:var(--green);animation:pulse 1.8s infinite}
+  .sdr-range{-webkit-appearance:none;appearance:none;height:3px;background:var(--border);outline:none;width:80px;cursor:pointer}
+  .sdr-range::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--green);border-radius:50%;cursor:pointer}
+  .sdr-ch-label{font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.2em;padding:0.9rem 1.2rem 0.4rem;text-transform:uppercase}
+  .sdr-ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border)}
+  .sdr-ch-btn{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;background:var(--card);border:none;cursor:pointer;text-align:left;transition:background 0.15s}
+  .sdr-ch-btn:hover{background:#161f1b}
+  .sdr-ch-btn.active{background:rgba(0,255,136,0.06);box-shadow:inset 3px 0 0 var(--green)}
+  .sdr-ch-hz{font-family:var(--mono);font-size:0.78rem;color:var(--green);min-width:68px}
+  .sdr-ch-name{font-family:var(--body);font-size:0.78rem;color:var(--text);flex:1}
+  .sdr-ch-mode{font-family:var(--mono);font-size:0.6rem;color:var(--text-dim)}
+  .sdr-url-config{padding:1.2rem;border-top:1px solid var(--border);background:var(--deep)}
+  .sdr-url-label{font-family:var(--mono);font-size:0.65rem;color:var(--green);letter-spacing:0.12em;margin-bottom:0.7rem}
+  .sdr-url-row{display:flex;gap:0.5rem;margin-bottom:0.8rem}
+  .sdr-url-input{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:0.78rem;padding:0.5rem 0.8rem;outline:none;transition:border-color 0.2s}
+  .sdr-url-input:focus{border-color:rgba(0,255,136,0.4)}
+  .sdr-url-apply{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;padding:0.5rem 1.2rem;background:transparent;border:1px solid var(--green);color:var(--green);cursor:pointer;white-space:nowrap;transition:all 0.2s}
+  .sdr-url-apply:hover{background:var(--green);color:var(--black)}
+  .sdr-url-hint{font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);line-height:1.7}
+  .sdr-url-hint code{color:rgba(0,229,255,0.7);word-break:break-all}
+  .coming-soon-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;gap:2rem;position:relative}
+  .cs-icon{font-size:4rem;opacity:0.15;font-family:var(--mono);color:var(--green);line-height:1}
+  .cs-badge{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(255,170,0,0.35);padding:0.3rem 1rem;display:inline-block;margin-bottom:0.5rem}
+  .cs-title{font-family:var(--cond);font-weight:900;font-size:clamp(2.2rem,5vw,4rem);text-transform:uppercase;color:#fff;letter-spacing:-0.01em;line-height:1}
+  .cs-title span{color:var(--green)}
+  .cs-lead{color:var(--text-dim);max-width:520px;font-size:0.97rem;line-height:1.75}
+  .cs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);width:100%;max-width:1100px;margin-top:1rem}
+  .cs-card{background:var(--card);padding:1.8rem;position:relative;overflow:hidden;text-align:left}
+  .cs-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green-dim),transparent);opacity:0.4}
+  .cs-card-icon{font-size:1.6rem;margin-bottom:1rem;opacity:0.6}
+  .cs-card-title{font-family:var(--cond);font-size:1.05rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff;margin-bottom:0.5rem}
+  .cs-card-desc{font-size:0.82rem;color:var(--text-dim);line-height:1.6}
+  .cs-card-tag{display:inline-block;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;border:1px solid var(--border);color:var(--text-dim);padding:0.15rem 0.5rem;margin-top:0.8rem}
+  .cs-card-tag.soon{border-color:rgba(255,170,0,0.3);color:var(--amber)}
+  .cs-card-tag.active{border-color:rgba(0,255,136,0.3);color:var(--green-dim)}
+  .cs-progress{width:100%;height:2px;background:var(--border);margin-top:2.5rem;max-width:400px;position:relative;overflow:hidden}
+  .cs-progress-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));animation:progpulse 2.5s ease-in-out infinite}
+  @keyframes progpulse{0%{width:15%;opacity:0.5}50%{width:75%;opacity:1}100%{width:15%;opacity:0.5}}
+  .cs-scan-lines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,136,0.015) 3px,rgba(0,255,136,0.015) 4px);pointer-events:none}
+  /* Live webcam cards — thumbnail click-through (YT live streams block iframe) */
+  .webcam-live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem;width:100%;margin-bottom:2.5rem}
+  .webcam-live-card{background:var(--card);border:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s}
+  .webcam-live-card:hover{border-color:var(--green)}
+  .webcam-live-header{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.1rem;border-bottom:1px solid var(--border)}
+  .webcam-live-title{font-family:var(--cond);font-size:0.95rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#fff}
+  .webcam-live-badge{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:0.15rem 0.5rem;animation:pulse 2s ease-in-out infinite}
+  .webcam-thumb{position:relative;padding-bottom:56.25%;height:0;background:#000;display:block;cursor:pointer;overflow:hidden;text-decoration:none}
+  .webcam-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.2s;opacity:0.85}
+  .webcam-thumb:hover img{opacity:1}
+  .webcam-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;background:rgba(0,0,0,0.7);border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.2s,border-color 0.2s}
+  .webcam-thumb:hover .webcam-play{background:rgba(0,255,136,0.2);border-color:#fff}
+  .webcam-play::after{content:'';display:block;width:0;height:0;border-top:14px solid transparent;border-bottom:14px solid transparent;border-left:22px solid var(--green);margin-left:4px}
+  .webcam-play-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,255,255,0.7);text-transform:uppercase;white-space:nowrap;background:rgba(0,0,0,0.55);padding:0.2rem 0.6rem}
+  .webcam-live-footer{padding:0.6rem 1.1rem;font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);display:flex;gap:1rem;align-items:center}
+  @media(max-width:640px){.webcam-live-grid{grid-template-columns:1fr}}
+  /* Scanner audio viz */
+  .scanner-viz{width:100%;max-width:700px;background:var(--panel);border:1px solid var(--border);padding:1.5rem;margin-top:1.5rem}
+  .scanner-viz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase}
+  .scanner-viz canvas{width:100%;height:48px;display:block;border-top:1px solid var(--border);padding-top:0.8rem}
+  .scanner-channels{display:flex;flex-direction:column;gap:0.4rem;margin-top:1rem;width:100%;max-width:700px}
+  .scanner-ch{display:flex;align-items:center;gap:1rem;padding:0.6rem 1rem;background:var(--panel);border:1px solid var(--border);font-family:var(--mono);font-size:0.7rem}
+  .scanner-ch-freq{color:var(--green);min-width:90px;font-size:0.78rem}
+  .scanner-ch-name{color:var(--text);flex:1}
+  .scanner-ch-mode{color:var(--text-dim);min-width:55px}
+  .scanner-ch-status{display:flex;align-items:center;gap:0.4rem;font-size:0.65rem;letter-spacing:0.1em}
+  .scanner-ch-bar{height:4px;background:var(--border);flex:1;min-width:60px;max-width:100px;border-radius:2px;overflow:hidden}
+  .scanner-ch-bar-fill{height:100%;background:var(--green);width:0%;transition:width 0.1s;border-radius:2px}
 </style>
 </head>
 <body>
@@ -192,11 +317,15 @@
     <li><a href="#" onclick="showPage('scanners')"    id="nav-scanners"    data-en="Scanners"     data-fr="Scanners">Scanners</a></li>
     <li><a href="#" onclick="showPage('frequencies')" id="nav-frequencies" data-en="Frequencies"  data-fr="Fréquences">Frequencies</a></li>
     <li><a href="#" onclick="showPage('cameras')"     id="nav-cameras"     data-en="MTQ Cameras"  data-fr="Caméras MTQ">MTQ Cameras</a></li>
+    <li><a href="#" onclick="showPage('webcams')"     id="nav-webcams"     data-en="Webcams"       data-fr="Webcams">Webcams</a></li>
+    <li><a href="#" onclick="showPage('scanner')"     id="nav-scanner"     data-en="Live Scanner"  data-fr="Scanner Live">Live Scanner</a></li>
+    <li><a href="#" onclick="showPage('amateur')"    id="nav-amateur"     data-en="Amateur Radio"  data-fr="Radioamateur">Amateur Radio</a></li>
+    <li><a href="#" onclick="showPage('coolstuff')"   id="nav-coolstuff"   data-en="Cool Stuff"   data-fr="Liens Cool">Cool Stuff</a></li>
     <li><a href="#" onclick="showPage('about')"       id="nav-about"       data-en="About"        data-fr="À propos">About</a></li>
   </ul>
   <div class="lang-toggle">
-    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
-    <button class="lang-btn"        onclick="setLang('fr')" id="btn-fr">FR</button>
+    <button class="lang-btn"        onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn active" onclick="setLang('fr')" id="btn-fr">FR</button>
   </div>
 </nav>
 
@@ -230,7 +359,7 @@
   <div class="hero-spectrum-labels">
     <span>150 MHz</span><span>154 MHz</span><span>158 MHz</span><span>162 MHz</span>
     <span>166 MHz</span><span>170 MHz</span><span>174 MHz</span><span>420 MHz</span>
-    <span>450 MHz</span><span>460 MHz</span><span>850 MHz</span><span>860 MHz</span>
+    <span>450 MHz</span><span>460 MHz</span>
   </div>
 </section>
 </div>
@@ -248,17 +377,17 @@
       <div class="tag-list"><span class="tag green">P25 P1/P2</span><span class="tag green">DMR</span><span class="tag amber" data-en="Base Station" data-fr="Station de base">Base Station</span><span class="tag">Wi-Fi</span><span class="tag cyan">NXDN</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">Uniden</div><div class="scanner-model">SDS100</div>
-      <div class="scanner-spec" data-en="Portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
+      <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD325P2</div>
+      <div class="scanner-spec" data-en="Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
       <div class="tag-list"><span class="tag green">P25 P2</span><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">25–1300 MHz</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">Uniden</div><div class="scanner-model">SDS200</div>
-      <div class="scanner-spec" data-en="Desktop digital scanner with SDR architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Proscan software." data-fr="Scanner numérique de bureau avec architecture SDR. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Proscan.">Desktop digital scanner with SDR architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Proscan software.</div>
+      <div class="scanner-brand">Whistler</div><div class="scanner-model">WS1095</div>
+      <div class="scanner-spec" data-en="Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity." data-fr="Scanner numérique de bureau avec architecture PSR-500. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Ez-Scan et capacité de 6 000 canaux.">Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity.</div>
       <div class="tag-list"><span class="tag green">P25</span><span class="tag amber" data-en="Desktop" data-fr="Bureau">Desktop</span><span class="tag">EZ-Scan</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v5</div>
+      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v3</div>
       <div class="scanner-spec" data-en="Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS." data-fr="Dongle radio logicielle couvrant 500 kHz – 1,75 GHz. Utilisé avec SDR# ou GQRX pour la surveillance large bande, le décodage ADS-B et ACARS.">Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS.</div>
       <div class="tag-list"><span class="tag cyan">SDR</span><span class="tag">ADS-B</span><span class="tag">ACARS</span><span class="tag green">0.5–1750 MHz</span></div>
     </div>
@@ -299,12 +428,6 @@
       style="display:inline-flex;align-items:center;gap:0.6rem;font-family:var(--mono);font-size:0.72rem;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:0.45rem 1rem;letter-spacing:0.1em;text-decoration:none;transition:all 0.2s;"
       onmouseover="this.style.background='rgba(0,255,136,0.08)'" onmouseout="this.style.background='transparent'">
       <span>↗</span> RadioReference — Capitale-Nationale (ctid/5207)
-    </a>
-    <div style="margin-bottom:2rem;">
-    <a href="https://www.infoscan.org/forum/" target="_blank" rel="noopener"
-      style="display:inline-flex;align-items:center;gap:0.6rem;font-family:var(--mono);font-size:0.72rem;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:0.45rem 1rem;letter-spacing:0.1em;text-decoration:none;transition:all 0.2s;"
-      onmouseover="this.style.background='rgba(0,255,136,0.08)'" onmouseout="this.style.background='transparent'">
-      <span>↗</span> WWW.infoscan.org
     </a>
   </div>
   <div class="freq-layout">
@@ -438,6 +561,265 @@
 </section>
 </div>
 
+<!-- RADIOAMATEUR -->
+<div id="page-amateur" class="page">
+<section id="amateur" style="padding-top:6rem;">
+  <p class="section-tag" data-en="Amateur Radio" data-fr="Radioamateur">Radioamateur</p>
+  <h2 data-en='Amateur <span style="color:var(--green)">Radio</span> — Québec' data-fr='Radio<span style="color:var(--green)">amateur</span> — Québec'>Amateur <span style="color:var(--green)">Radio</span> — Québec</h2>
+  <p class="section-lead" data-en="Repeaters, simplex calling frequencies, clubs, and resources for amateur radio operators in the Québec City (Capitale-Nationale) region." data-fr="Répéteurs, fréquences d'appel simplex, clubs et ressources pour les radioamateurs de la région de Québec (Capitale-Nationale).">Repeaters, simplex calling frequencies, clubs, and resources for amateur radio operators in the Québec City (Capitale-Nationale) region.</p>
+
+  <div class="freq-layout">
+    <div>
+      <!-- 2m Repeaters -->
+      <div class="freq-section-head" data-en="📡 2m Repeaters — Capitale-Nationale" data-fr="📡 Répéteurs 2m — Capitale-Nationale">📡 Répéteurs 2m — Capitale-Nationale</div>
+      <table class="freq-table">
+        <thead><tr>
+          <th data-en="Output" data-fr="Sortie">Sortie</th>
+          <th data-en="Input" data-fr="Entrée">Entrée</th>
+          <th data-en="Call Sign" data-fr="Indicatif">Indicatif</th>
+          <th data-en="Location" data-fr="Localisation">Localisation</th>
+          <th>PL</th>
+          <th data-en="Status" data-fr="État">État</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">146.610</td><td class="freq-type">146.010</td><td class="freq-service" style="color:var(--green-dim)">VE2RQR</td><td class="freq-service" data-en="Sainte-Foy–Sillery–Cap-Rouge" data-fr="Sainte-Foy–Sillery–Cap-Rouge">Sainte-Foy–Sillery–Cap-Rouge</td><td class="freq-type">100.0</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.760</td><td class="freq-type">146.160</td><td class="freq-service" style="color:var(--green-dim)">VE2RVD</td><td class="freq-service" data-en="Saint-Elzéar-de-Beauce" data-fr="Saint-Elzéar-de-Beauce">Saint-Elzéar-de-Beauce</td><td class="freq-type">100.0</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.820</td><td class="freq-type">146.220</td><td class="freq-service" style="color:var(--green-dim)">VE2RAA</td><td class="freq-service" data-en="Mont Sainte-Anne" data-fr="Mont Sainte-Anne">Mont Sainte-Anne</td><td class="freq-type">100.0</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.880</td><td class="freq-type">146.280</td><td class="freq-service" style="color:var(--green-dim)">VE2RIG</td><td class="freq-service" data-en="Pont Pierre-Laporte" data-fr="Pont Pierre-Laporte">Pont Pierre-Laporte</td><td class="freq-type">100.0</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.940</td><td class="freq-type">146.340</td><td class="freq-service" style="color:var(--green-dim)">VE2RQB</td><td class="freq-service" data-en="Québec City" data-fr="Ville de Québec">Ville de Québec</td><td class="freq-type">—</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">147.285</td><td class="freq-type">147.885</td><td class="freq-service" style="color:var(--green-dim)">VE2CQ</td><td class="freq-service" data-en="Québec City" data-fr="Ville de Québec">Ville de Québec</td><td class="freq-type">—</td><td><span class="dot-live"></span></td></tr>
+        </tbody>
+      </table>
+
+      <!-- 70cm Repeaters -->
+      <div class="freq-section-head" style="margin-top:2rem" data-en="📡 70cm Repeaters — Capitale-Nationale" data-fr="📡 Répéteurs 70cm — Capitale-Nationale">📡 Répéteurs 70cm — Capitale-Nationale</div>
+      <table class="freq-table">
+        <thead><tr>
+          <th data-en="Output" data-fr="Sortie">Sortie</th>
+          <th data-en="Input" data-fr="Entrée">Entrée</th>
+          <th data-en="Call Sign" data-fr="Indicatif">Indicatif</th>
+          <th data-en="Location" data-fr="Localisation">Localisation</th>
+          <th>PL</th>
+          <th data-en="Status" data-fr="État">État</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">444.500</td><td class="freq-type">449.500</td><td class="freq-service" style="color:var(--green-dim)">VE2RQB</td><td class="freq-service" data-en="Québec City — UHF" data-fr="Québec — UHF">Québec — UHF</td><td class="freq-type">—</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">443.600</td><td class="freq-type">448.600</td><td class="freq-service" style="color:var(--green-dim)">VE2RQC</td><td class="freq-service" data-en="Québec City — UHF Link" data-fr="Québec — Liaison UHF">Québec — Liaison UHF</td><td class="freq-type">—</td><td><span class="dot-inactive"></span></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Simplex -->
+      <div class="freq-section-head" style="margin-top:2rem" data-en="📻 Simplex Calling Frequencies" data-fr="📻 Fréquences d'appel simplex">📻 Fréquences d'appel simplex</div>
+      <table class="freq-table">
+        <thead><tr>
+          <th data-en="Frequency" data-fr="Fréquence">Fréquence</th>
+          <th data-en="Band" data-fr="Bande">Bande</th>
+          <th data-en="Use" data-fr="Usage">Usage</th>
+          <th data-en="Status" data-fr="État">État</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">146.520</td><td class="freq-type">2m</td><td class="freq-service" data-en="National Calling (FM)" data-fr="Fréquence d'appel nationale (FM)">Fréq. d'appel nationale FM</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">145.500</td><td class="freq-type">2m</td><td class="freq-service" data-en="VHF Calling — Québec" data-fr="Appel VHF — Québec">Appel VHF — Québec</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">446.000</td><td class="freq-type">70cm</td><td class="freq-service" data-en="UHF Calling (FM)" data-fr="Appel UHF (FM)">Appel UHF (FM)</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">52.525</td><td class="freq-type">6m</td><td class="freq-service" data-en="6m Calling" data-fr="Appel 6m">Appel 6m</td><td><span class="dot-inactive"></span></td></tr>
+          <tr><td class="freq-hz">144.200</td><td class="freq-type">2m</td><td class="freq-service">SSB / Weak Signal</td><td><span class="dot-inactive"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <!-- Digital modes -->
+      <div class="freq-section-head" data-en="💻 Digital Modes & Networks" data-fr="💻 Modes numériques &amp; réseaux">💻 Modes numériques &amp; réseaux</div>
+      <table class="freq-table">
+        <thead><tr>
+          <th data-en="Frequency" data-fr="Fréquence">Fréquence</th>
+          <th data-en="Network / Mode" data-fr="Réseau / Mode">Réseau / Mode</th>
+          <th data-en="Call / ID" data-fr="Indicatif / ID">Indicatif</th>
+          <th data-en="Status" data-fr="État">État</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="freq-hz">146.610</td><td class="freq-service">Wires-X / Fusion</td><td class="freq-type" style="color:var(--green-dim)">VE2RQR</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.610</td><td class="freq-service">YSF 40721</td><td class="freq-type">Fusion Canada FR</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">146.610</td><td class="freq-service">DMR BM:30222</td><td class="freq-type">Brandmeister</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">—</td><td class="freq-service">D-STAR</td><td class="freq-type">VE2RQR</td><td><span class="dot-inactive"></span></td></tr>
+          <tr><td class="freq-hz">144.390</td><td class="freq-service">APRS</td><td class="freq-type">2m National</td><td><span class="dot-live"></span></td></tr>
+          <tr><td class="freq-hz">432.100</td><td class="freq-service">EME / Moonbounce</td><td class="freq-type">70cm SSB</td><td><span class="dot-inactive"></span></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Clubs -->
+      <div class="freq-section-head" style="margin-top:2rem" data-en="🏛 Clubs &amp; Organizations" data-fr="🏛 Clubs &amp; organisations">🏛 Clubs &amp; organisations</div>
+      <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:2rem;">
+        <div class="amateur-club-card">
+          <div class="amateur-club-call">CRAQ</div>
+          <div class="amateur-club-name" data-en="Club de Radioamateurs de la région de Québec" data-fr="Club de Radioamateurs de la région de Québec">Club de Radioamateurs de la région de Québec</div>
+          <div class="amateur-club-detail">VE2RQR · Université Laval · Broadcastify</div>
+          <a href="https://www.craquebecinik.ca" target="_blank" class="amateur-club-link">craquebecinik.ca ↗</a>
+        </div>
+        <div class="amateur-club-card">
+          <div class="amateur-club-call">ARES Québec</div>
+          <div class="amateur-club-name">VE2CSQ — Association Radio Expérimentale du Sud de Québec</div>
+          <div class="amateur-club-detail" data-en="Emergency communications, Broadcastify feed active" data-fr="Communications d'urgence, flux Broadcastify actif">Communications d'urgence · flux Broadcastify actif</div>
+        </div>
+        <div class="amateur-club-card">
+          <div class="amateur-club-call">CANWARN</div>
+          <div class="amateur-club-name">VE2CWQ — Réseau Canwarn-Québec</div>
+          <div class="amateur-club-detail" data-en="Weather observation network — active during severe weather" data-fr="Réseau d'observation météo — actif lors de temps violent">Réseau météo · actif lors de temps violent</div>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div class="freq-section-head" data-en="🔗 Resources" data-fr="🔗 Ressources">🔗 Ressources</div>
+      <div style="background:var(--panel);border:1px solid var(--border);padding:1.4rem;display:flex;flex-direction:column;gap:0.6rem;font-size:0.85rem;">
+        <a href="https://www.radioreference.com/db/browse/ctid/5207/ham" target="_blank" class="amateur-resource-link">→ RadioReference — Capitale-Nationale Ham</a>
+        <a href="https://www.broadcastify.com/listen/ctid/5207/amateur" target="_blank" class="amateur-resource-link">→ Broadcastify — Amateur Radio Feeds</a>
+        <a href="https://www.rac.ca" target="_blank" class="amateur-resource-link">→ Radio Amateurs of Canada (RAC)</a>
+        <a href="https://www.irlp.net" target="_blank" class="amateur-resource-link">→ IRLP — Internet Radio Linking Project</a>
+        <a href="https://www.aprs.fi/#!lat=46.82&lng=-71.22" target="_blank" class="amateur-resource-link">→ APRS.fi — Carte Québec</a>
+        <a href="https://www.dxmaps.com" target="_blank" class="amateur-resource-link">→ DXMaps — Propagation &amp; DX</a>
+        <a href="https://www.pskreporter.info" target="_blank" class="amateur-resource-link">→ PSKReporter — FT8 / Digital propagation</a>
+        <a href="https://cluster.dx.net" target="_blank" class="amateur-resource-link">→ DX Cluster</a>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- COOL STUFF -->
+<div id="page-coolstuff" class="page">
+<section id="coolstuff" style="padding-top:6rem;padding-bottom:4rem;">
+  <p class="section-tag" data-en="Tools &amp; Links" data-fr="Outils &amp; Liens">Outils &amp; Liens</p>
+  <h2 data-en='Cool <span style="color:var(--green)">Stuff</span>' data-fr='Liens <span style="color:var(--green)">Cool</span>'>Liens <span style="color:var(--green)">Cool</span></h2>
+  <p class="section-lead" data-en="Curated tools, live maps, and web apps for aviation, maritime, radio, and traffic monitoring." data-fr="Outils, cartes en direct et applications web pour l'aviation, le maritime, la radio et la surveillance du trafic.">Outils, cartes en direct et applications web pour l'aviation, le maritime, la radio et la surveillance du trafic.</p>
+
+  <div class="cool-grid">
+
+    <!-- AVIATION -->
+    <div class="cool-section-label" data-en="✈️ Aviation" data-fr="✈️ Aviation">✈️ Aviation</div>
+
+    <a class="cool-card" href="https://www.airnavradar.com/airport/YQB" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🛫</div>
+        <div class="cool-card-badge">AirNav</div>
+      </div>
+      <div class="cool-card-title">AirNav RadarBox — YQB</div>
+      <div class="cool-card-desc" data-en="Live flight radar for Québec City Jean-Lesage International (YQB) — real-time ADS-B traffic, arrivals, departures, and altitude data." data-fr="Radar de vol en direct pour l'aéroport Jean-Lesage (YQB) — trafic ADS-B en temps réel, arrivées, départs et données d'altitude.">Radar de vol en direct pour YQB — trafic ADS-B, arrivées &amp; départs.</div>
+      <div class="cool-card-url">airnavradar.com ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://www.flightradar24.com/YQB" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">📡</div>
+        <div class="cool-card-badge">FR24</div>
+      </div>
+      <div class="cool-card-title">FlightRadar24 — YQB</div>
+      <div class="cool-card-desc" data-en="Live ADS-B flight tracking around Québec City — aircraft positions, flight numbers, origin/destination." data-fr="Suivi de vol ADS-B en temps réel autour de Québec — positions, numéros de vol, origines et destinations.">Suivi de vol ADS-B en temps réel autour de Québec.</div>
+      <div class="cool-card-url">flightradar24.com ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://globe.adsbexchange.com/?airport=CYQB" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🌐</div>
+        <div class="cool-card-badge">ADS-B</div>
+      </div>
+      <div class="cool-card-title">ADS-B Exchange — CYQB</div>
+      <div class="cool-card-desc" data-en="Unfiltered ADS-B data — military, private, and untracked aircraft visible. No data suppression." data-fr="Données ADS-B non filtrées — militaires, privés et aéronefs non suivis visibles. Aucune suppression de données.">Données ADS-B non filtrées — militaires &amp; non suivis visibles.</div>
+      <div class="cool-card-url">globe.adsbexchange.com ↗</div>
+    </a>
+
+    <!-- MARITIME -->
+    <div class="cool-section-label" data-en="⚓ Maritime" data-fr="⚓ Maritime">⚓ Maritime</div>
+
+    <a class="cool-card" href="https://www.marinetraffic.com/en/ais/home/centerx:-71.2/centery:46.8/zoom:11" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🚢</div>
+        <div class="cool-card-badge">AIS</div>
+      </div>
+      <div class="cool-card-title">MarineTraffic — Fleuve Québec</div>
+      <div class="cool-card-desc" data-en="Live AIS vessel tracking on the St. Lawrence River around Québec City — cargo ships, tankers, ferries and cruise ships." data-fr="Suivi AIS des navires en direct sur le Saint-Laurent autour de Québec — cargos, tankers, traversiers et navires de croisière.">Suivi AIS en direct sur le Saint-Laurent — cargos, tankers &amp; traversiers.</div>
+      <div class="cool-card-url">marinetraffic.com ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://www.vesseltracker.com" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">⚓</div>
+        <div class="cool-card-badge">AIS</div>
+      </div>
+      <div class="cool-card-title">VesselTracker</div>
+      <div class="cool-card-desc" data-en="Alternative AIS vessel tracker with historical port calls and voyage data for the St. Lawrence Seaway." data-fr="Suivi AIS alternatif avec historique des escales portuaires et données de voyage pour la Voie maritime du Saint-Laurent.">Suivi AIS alternatif — historique des escales &amp; voie maritime.</div>
+      <div class="cool-card-url">vesseltracker.com ↗</div>
+    </a>
+
+    <!-- RADIO & SCANNING -->
+    <div class="cool-section-label" data-en="📻 Radio &amp; Scanning" data-fr="📻 Radio &amp; Balayage">📻 Radio &amp; Balayage</div>
+
+    <a class="cool-card" href="https://www.broadcastify.com/listen/ctid/5207" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🎙️</div>
+        <div class="cool-card-badge">AUDIO</div>
+      </div>
+      <div class="cool-card-title">Broadcastify — Capitale-Nationale</div>
+      <div class="cool-card-desc" data-en="Live scanner audio feeds for the Québec City region — public safety, police, fire, ambulance." data-fr="Flux audio scanner en direct pour la région de Québec — sécurité publique, police, incendie, ambulance.">Flux audio scanner en direct — police, incendie, ambulance.</div>
+      <div class="cool-card-url">broadcastify.com ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://www.radioreference.com/db/browse/ctid/5207" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">📖</div>
+        <div class="cool-card-badge">DB</div>
+      </div>
+      <div class="cool-card-title">RadioReference — Capitale-Nationale</div>
+      <div class="cool-card-desc" data-en="Complete frequency database for the Capitale-Nationale region — trunked systems, conventional, ham, and more." data-fr="Base de données complète des fréquences pour la Capitale-Nationale — systèmes numérisés, conventionnels, radioamateur et plus.">Base de données complète des fréquences de la région.</div>
+      <div class="cool-card-url">radioreference.com ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://www.sigidwiki.com" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🔍</div>
+        <div class="cool-card-badge">WIKI</div>
+      </div>
+      <div class="cool-card-title">Signal Identification Wiki</div>
+      <div class="cool-card-desc" data-en="Identify unknown signals — audio samples, waterfall screenshots, and descriptions for hundreds of signal types." data-fr="Identifier les signaux inconnus — échantillons audio, captures waterfall et descriptions pour des centaines de types de signaux.">Identifier les signaux inconnus — échantillons audio &amp; waterfall.</div>
+      <div class="cool-card-url">sigidwiki.com ↗</div>
+    </a>
+
+    <!-- TRAFFIC & WEATHER -->
+    <div class="cool-section-label" data-en="🚦 Traffic &amp; Weather" data-fr="🚦 Trafic &amp; Météo">🚦 Trafic &amp; Météo</div>
+
+    <a class="cool-card" href="https://www.quebec511.info/carte/Default.aspx" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🗺️</div>
+        <div class="cool-card-badge">MTQ</div>
+      </div>
+      <div class="cool-card-title">Québec 511 — Carte interactive</div>
+      <div class="cool-card-desc" data-en="Interactive road map from Transports Québec — all MTQ cameras, road conditions, construction zones, and incidents." data-fr="Carte routière interactive de Transports Québec — toutes les caméras MTQ, conditions routières, chantiers et incidents.">Carte interactive MTQ — conditions routières &amp; incidents.</div>
+      <div class="cool-card-url">quebec511.info ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://meteo.gc.ca/radar/index_f.html" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">🌧️</div>
+        <div class="cool-card-badge">EC</div>
+      </div>
+      <div class="cool-card-title">Radar météo — Environnement Canada</div>
+      <div class="cool-card-desc" data-en="Live precipitation radar from Environment and Climate Change Canada — Québec City region composite." data-fr="Radar de précipitations en direct d'Environnement et Changement climatique Canada — composite région de Québec.">Radar précipitations en direct — région de Québec.</div>
+      <div class="cool-card-url">meteo.gc.ca ↗</div>
+    </a>
+
+    <a class="cool-card" href="https://www.windy.com/?46.82,-71.22,10" target="_blank" rel="noopener">
+      <div class="cool-card-top">
+        <div class="cool-card-icon">💨</div>
+        <div class="cool-card-badge">WIND</div>
+      </div>
+      <div class="cool-card-title">Windy — Québec</div>
+      <div class="cool-card-desc" data-en="High-resolution animated wind, temperature, precipitation and wave forecast centered on Québec City." data-fr="Prévisions animées vent, température, précipitations et vagues en haute résolution centrées sur Québec.">Prévisions animées vent &amp; météo centrées sur Québec.</div>
+      <div class="cool-card-url">windy.com ↗</div>
+    </a>
+
+  </div>
+</section>
+</div>
+
 <!-- ABOUT -->
 <div id="page-about" class="page">
 <section id="about" style="padding-top:6rem;">
@@ -445,24 +827,23 @@
   <h2 id="h2-about" data-en='The <span style="color:var(--green)">Passion</span>' data-fr='La <span style="color:var(--green)">Passion</span>'>The <span style="color:var(--green)">Passion</span></h2>
   <div class="about-grid">
     <div class="about-block">
-      <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Quebec emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Quebec au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Quebec emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
-      <p data-en="Based in Québec, my monitoring setup covers HF/VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Québec, ma configuration de surveillance couvre les services d'urgence HF/VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Québec, my monitoring setup covers HF/VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
+      <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Montréal au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
+      <p data-en="Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Montréal, Québec, ma configuration de surveillance couvre les services d'urgence VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
       <p data-en="The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying." data-fr="Le réseau de caméras MTQ est un complément fascinant à la surveillance radio — quand vous entendez un incident sur le scanner, vous pouvez souvent afficher la caméra de circulation la plus proche pour voir les conditions réelles. Cette synthèse de surveillance audio et de confirmation visuelle est singulièrement satisfaisante.">The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying.</p>
       <p data-en="This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network." data-fr="Ce site sert de référence pour les passionnés de la région du Québec — listes de fréquences, revues d'équipements et accès au réseau de caméras MTQ.">This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network.</p>
       <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;">
         <a class="btn" href="https://www.quebec511.info" target="_blank" data-en="Québec 511 Official →" data-fr="Québec 511 Officiel →">Québec 511 Official →</a>
-        <a class="btn btn-secondary" href="https://www.radioreference.com/db/browse/stid/111" target="_blank">RadioReference QC</a>
+        <a class="btn btn-secondary" href="https://www.radioreference.com/apps/db/?ctid=CAF006" target="_blank">RadioReference QC</a>
       </div>
     </div>
     <div>
       <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1rem;" data-en="Current Monitoring Setup" data-fr="Configuration de surveillance actuelle">Current Monitoring Setup</div>
       <ul class="gear-list">
         <li data-en="Uniden BCD536HP — P25 P2 home base"           data-fr="Uniden BCD536HP — Base fixe P25 P2">Uniden BCD536HP — P25 P2 home base</li>
-        <li data-en="RTL-SDR v5 + SDR# — wideband monitoring"      data-fr="RTL-SDR v5 + SDR# — surveillance large bande">RTL-SDR v5 + SDR# — wideband monitoring</li>
+        <li data-en="RTL-SDR v3 + SDR# — wideband monitoring"      data-fr="RTL-SDR v3 + SDR# — surveillance large bande">RTL-SDR v3 + SDR# — wideband monitoring</li>
         <li data-en="Diamond D-130J Discone — 25–1300 MHz"         data-fr="Discone Diamond D-130J — 25–1300 MHz">Diamond D-130J Discone — 25–1300 MHz</li>
         <li data-en="Virtual Radar Server — ADS-B tracking"        data-fr="Virtual Radar Server — suivi ADS-B">Virtual Radar Server — ADS-B tracking</li>
         <li data-en="DSD+ — digital voice decoder"                 data-fr="DSD+ — décodeur vocal numérique">DSD+ — digital voice decoder</li>
-        <li data-en="DSD-FME — digital voice decoder"              data-fr="DSD-FME — décodeur vocal numérique">DSD-FME — digital voice decoder</li>
         <li data-en="trunk-recorder — P25 logging"                 data-fr="trunk-recorder — journalisation P25">trunk-recorder — P25 logging</li>
         <li data-en="Unitrunker — trunking follow"                 data-fr="Unitrunker — suivi de trunk">Unitrunker — trunking follow</li>
         <li data-en="GQRX — SDR on Linux workstation"              data-fr="GQRX — SDR sur station Linux">GQRX — SDR on Linux workstation</li>
@@ -484,10 +865,284 @@
 </section>
 </div>
 
+<!-- WEBCAMS -->
+<div id="page-webcams" class="page">
+<section id="webcams" style="padding-top:6rem;">
+  <p class="section-tag" data-en="Scenic Monitoring" data-fr="Surveillance Paysagère">Scenic Monitoring</p>
+  <h2 data-en='Scenic <span style="color:var(--green)">Webcams</span>' data-fr='Webcams <span style="color:var(--green)">Paysagères</span>'>Scenic <span style="color:var(--green)">Webcams</span></h2>
+  <p class="section-lead" data-en="Live webcam feeds — St. Lawrence River, Port of Québec, Montréal-Trudeau airport, and more." data-fr="Flux webcam en direct — fleuve Saint-Laurent, Port de Québec, aéroport Montréal-Trudeau et plus.">Live webcam feeds — St. Lawrence River, Port of Québec, Montréal-Trudeau airport, and more.</p>
+
+  <!-- LIVE FEEDS — thumbnail click-through (YT live streams block iframe embedding) -->
+  <div class="webcam-live-grid">
+
+    <div class="webcam-live-card">
+      <div class="webcam-live-header">
+        <div class="webcam-live-title">⚓ <span data-en="Port de Québec — Fleuve" data-fr="Port de Québec — Fleuve">Port de Québec — Fleuve</span></div>
+        <span class="webcam-live-badge">● LIVE</span>
+      </div>
+      <a class="webcam-thumb" href="https://www.youtube.com/watch?v=I-7mv4-BJ7M" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/I-7mv4-BJ7M/maxresdefault.jpg" alt="Port de Québec live webcam" loading="lazy">
+        <div class="webcam-play"></div>
+        <div class="webcam-play-label" data-en="▶ Watch on YouTube" data-fr="▶ Voir sur YouTube">▶ Voir sur YouTube</div>
+      </a>
+      <div class="webcam-live-footer">
+        <span data-en="St. Lawrence · Vessel traffic · Ice &amp; tide" data-fr="Fleuve Saint-Laurent · Trafic maritime · Glaces &amp; marées">Fleuve Saint-Laurent · Trafic maritime · Glaces &amp; marées</span>
+      </div>
+    </div>
+
+    <div class="webcam-live-card">
+      <div class="webcam-live-header">
+        <div class="webcam-live-title">✈️ <span data-en="Aéroport Montréal-Trudeau (YUL)" data-fr="Aéroport Montréal-Trudeau (YUL)">Aéroport Montréal-Trudeau (YUL)</span></div>
+        <span class="webcam-live-badge">● LIVE</span>
+      </div>
+      <a class="webcam-thumb" href="https://www.youtube.com/watch?v=nNcfuDt4Xbs" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/nNcfuDt4Xbs/maxresdefault.jpg" alt="Aéroport Montréal-Trudeau live webcam" loading="lazy">
+        <div class="webcam-play"></div>
+        <div class="webcam-play-label" data-en="▶ Watch on YouTube" data-fr="▶ Voir sur YouTube">▶ Voir sur YouTube</div>
+      </a>
+      <div class="webcam-live-footer">
+        <span data-en="YUL · Runway &amp; apron · Arrivals &amp; departures" data-fr="YUL · Piste &amp; tablier · Arrivées &amp; départs">YUL · Piste &amp; tablier · Arrivées &amp; départs</span>
+      </div>
+    </div>
+
+    <div class="webcam-live-card">
+      <div class="webcam-live-header">
+        <div class="webcam-live-title">🌊 <span data-en="Québec — Fleuve St-Laurent" data-fr="Québec — Fleuve St-Laurent">Québec — Fleuve St-Laurent</span></div>
+        <span class="webcam-live-badge">● LIVE</span>
+      </div>
+      <a class="webcam-thumb" href="https://youtu.be/ZGk4fkhBTvU" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/ZGk4fkhBTvU/maxresdefault.jpg" alt="Fleuve Saint-Laurent webcam" loading="lazy">
+        <div class="webcam-play"></div>
+        <div class="webcam-play-label" data-en="▶ Watch on YouTube" data-fr="▶ Voir sur YouTube">▶ Voir sur YouTube</div>
+      </a>
+      <div class="webcam-live-footer">
+        <span data-en="St. Lawrence River — scenic live view" data-fr="Fleuve Saint-Laurent — vue en direct">Fleuve Saint-Laurent — vue en direct</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PENDING FEEDS -->
+  <div class="coming-soon-wrap" style="min-height:auto;padding:2rem 0 0">
+    <div class="cs-scan-lines"></div>
+    <div>
+      <div class="cs-badge" data-en="// MORE FEEDS IN DEVELOPMENT" data-fr="// PLUS DE FLUX EN DÉVELOPPEMENT">// MORE FEEDS IN DEVELOPMENT</div>
+    </div>
+
+    <div class="cs-grid">
+      <div class="cs-card">
+        <div class="cs-card-icon">🏰</div>
+        <div class="cs-card-title" data-en="Vieux-Québec — Château Frontenac" data-fr="Vieux-Québec — Château Frontenac">Vieux-Québec — Château Frontenac</div>
+        <div class="cs-card-desc" data-en="Panoramic view from the Old City overlooking the river, the Terrasse Dufferin, and the historic skyline of Québec City." data-fr="Vue panoramique depuis la Vieille-Ville sur le fleuve, la Terrasse Dufferin et le skyline historique de Québec.">Panoramic view from the Old City overlooking the river, the Terrasse Dufferin, and the historic skyline of Québec City.</div>
+        <span class="cs-card-tag soon" data-en="Feed Pending" data-fr="Flux en attente">Flux en attente</span>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-icon">🌉</div>
+        <div class="cs-card-title" data-en="Pont de Québec / Pierre-Laporte" data-fr="Pont de Québec / Pierre-Laporte">Pont de Québec / Pierre-Laporte</div>
+        <div class="cs-card-desc" data-en="Upstream view of the two bridges spanning the St. Lawrence — the historic cantilever bridge and the modern suspension bridge." data-fr="Vue amont des deux ponts enjambant le Saint-Laurent — le pont cantilever historique et le pont suspendu Pierre-Laporte.">Vue amont des deux ponts enjambant le Saint-Laurent.</div>
+        <span class="cs-card-tag soon" data-en="Feed Pending" data-fr="Flux en attente">Flux en attente</span>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-icon">🌊</div>
+        <div class="cs-card-title" data-en="Traverse Québec–Lévis" data-fr="Traverse Québec–Lévis">Traverse Québec–Lévis</div>
+        <div class="cs-card-desc" data-en="Live ferry crossing cam between Québec City and Lévis — operating year-round across the St. Lawrence." data-fr="Webcam en direct de la traverse Québec–Lévis — en service toute l'année sur le Saint-Laurent.">Webcam en direct de la traverse Québec–Lévis.</div>
+        <span class="cs-card-tag soon" data-en="Feed Pending" data-fr="Flux en attente">Flux en attente</span>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-icon">✈️</div>
+        <div class="cs-card-title" data-en="Aéroport Jean-Lesage (YQB)" data-fr="Aéroport Jean-Lesage (YQB)">Aéroport Jean-Lesage (YQB)</div>
+        <div class="cs-card-desc" data-en="Apron and runway view at Québec City Jean Lesage International Airport — track alongside the 119.500 MHz approach frequency." data-fr="Vue tablier et piste à l'aéroport Jean-Lesage — suivre les arrivées en parallèle de la fréquence 119.500 MHz.">Vue tablier et piste à l'aéroport Jean-Lesage (YQB).</div>
+        <span class="cs-card-tag soon" data-en="Feed Pending" data-fr="Flux en attente">Flux en attente</span>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-icon">🏔️</div>
+        <div class="cs-card-title" data-en="Massif de Charlevoix" data-fr="Massif de Charlevoix">Massif de Charlevoix</div>
+        <div class="cs-card-desc" data-en="Summit webcam overlooking the St. Lawrence from the Massif de Charlevoix — weather, river ice, and panoramas from 770m." data-fr="Webcam au sommet du Massif de Charlevoix — météo, glaces sur le fleuve et panoramas depuis 770m d'altitude.">Webcam au sommet du Massif de Charlevoix — 770m d'altitude.</div>
+        <span class="cs-card-tag soon" data-en="Feed Pending" data-fr="Flux en attente">Flux en attente</span>
+      </div>
+    </div>
+
+    <div class="cs-progress"><div class="cs-progress-bar"></div></div>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);letter-spacing:0.12em;" data-en="SOURCING FEEDS · INTEGRATION IN PROGRESS" data-fr="RECHERCHE DE FLUX · INTÉGRATION EN COURS">RECHERCHE DE FLUX · INTÉGRATION EN COURS</p>
+  </div>
+</section>
+</div>
+
+<!-- LIVE SCANNER -->
+<div id="page-scanner" class="page">
+<section id="scanner" style="padding-top:6rem;padding-bottom:3rem;">
+  <p class="section-tag" data-en="Audio Monitoring" data-fr="Surveillance Audio">Audio Monitoring</p>
+  <h2 data-en='Live <span style="color:var(--green)">Scanner</span>' data-fr='Scanner <span style="color:var(--green)">en Direct</span>'>Live <span style="color:var(--green)">Scanner</span></h2>
+  <p class="section-lead" data-en="Real-time scanner audio from Québec City — public safety, aviation (CYQB), and amateur radio. Select a source below to listen without leaving ScanQC." data-fr="Audio scanner en temps réel de Québec — sécurité publique, aviation (CYQB) et radioamateur. Choisissez une source ci-dessous pour écouter sans quitter ScanQC.">Real-time scanner audio from Québec City — public safety, aviation (CYQB), and amateur radio. Select a source below to listen without leaving ScanQC.</p>
+
+  <!-- SOURCE TABS -->
+  <div class="stream-tabs" id="streamTabs">
+    <button class="stream-tab active" onclick="switchStream('broadcastify',this)">
+      <span class="stab-icon">📻</span>
+      <span class="stab-label">Broadcastify</span>
+      <span class="stab-sub" data-en="Public Safety · Amateur" data-fr="Sécurité publique · Amateur">Public Safety · Amateur</span>
+    </button>
+    <button class="stream-tab" onclick="switchStream('liveatc',this)">
+      <span class="stab-icon">✈️</span>
+      <span class="stab-label">LiveATC</span>
+      <span class="stab-sub" data-en="CYQB Tower · Approach · ATIS" data-fr="Tour CYQB · Approche · ATIS">CYQB Tower · Approach · ATIS</span>
+    </button>
+    <button class="stream-tab" onclick="switchStream('sdr',this)">
+      <span class="stab-icon">📡</span>
+      <span class="stab-label" data-en="RTL-SDR Direct" data-fr="RTL-SDR Direct">RTL-SDR Direct</span>
+      <span class="stab-sub" data-en="Your Icecast stream" data-fr="Votre flux Icecast">Your Icecast stream</span>
+    </button>
+  </div>
+
+  <!-- BROADCASTIFY PANEL -->
+  <div class="stream-panel" id="panel-broadcastify">
+    <div class="stream-panel-header">
+      <span class="stream-panel-title">Broadcastify — Capitale-Nationale (ctid/5207)</span>
+      <div class="stream-panel-actions">
+        <span class="stream-note" data-en="⚠ Select a feed then choose Web Player to start audio" data-fr="⚠ Sélectionnez un flux puis choisissez Lecteur Web">⚠ Select a feed then choose Web Player to start audio</span>
+        <a href="https://www.broadcastify.com/listen/ctid/5207" target="_blank" class="stream-ext-link">Open full page ↗</a>
+      </div>
+    </div>
+    <div class="stream-frame-wrap">
+      <iframe id="iframe-broadcastify"
+        src="https://www.broadcastify.com/listen/ctid/5207"
+        title="Broadcastify Capitale-Nationale"
+        allow="autoplay"
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- LIVEATC PANEL -->
+  <div class="stream-panel hidden" id="panel-liveatc">
+    <div class="stream-panel-header">
+      <span class="stream-panel-title">LiveATC — CYQB (Québec Jean-Lesage)</span>
+      <div class="stream-panel-actions">
+        <span class="stream-note" data-en="Opens in new tab — LiveATC blocks embedding" data-fr="Ouvre dans un nouvel onglet — LiveATC bloque l'intégration">Opens in new tab — LiveATC blocks embedding</span>
+      </div>
+    </div>
+    <div class="latc-feed-grid">
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">🗼</div>
+        <div class="latc-feed-name" data-en="Ground / Tower" data-fr="Sol / Tour">Ground / Tower</div>
+        <div class="latc-feed-freq">118.800 / 121.700 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">📡</div>
+        <div class="latc-feed-name" data-en="App / Dep — 124.0 MHz" data-fr="App / Dep — 124.0 MHz">App / Dep — 124.0 MHz</div>
+        <div class="latc-feed-freq">124.000 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">📡</div>
+        <div class="latc-feed-name" data-en="App / Dep — 127.85 MHz" data-fr="App / Dep — 127.85 MHz">App / Dep — 127.85 MHz</div>
+        <div class="latc-feed-freq">127.850 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">
+          <svg width="32" height="21" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg" style="display:block">
+            <rect width="32" height="21" fill="#003DA5"/>
+            <rect x="8" width="16" height="21" fill="white"/>
+            <rect y="8" width="32" height="5" fill="white"/>
+            <!-- fleurs-de-lis simplified -->
+            <text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+          </svg>
+        </div>
+        <div class="latc-feed-name">ATIS English</div>
+        <div class="latc-feed-freq">126.350 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">
+          <svg width="32" height="21" viewBox="0 0 32 21" xmlns="http://www.w3.org/2000/svg" style="display:block">
+            <rect width="32" height="21" fill="#003DA5"/>
+            <rect x="8" width="16" height="21" fill="white"/>
+            <rect y="8" width="32" height="5" fill="white"/>
+            <text x="4" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="16" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="28" y="15" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+            <text x="16" y="7" font-size="8" fill="#003DA5" font-family="serif" text-anchor="middle">⚜</text>
+          </svg>
+        </div>
+        <div class="latc-feed-name">ATIS Français</div>
+        <div class="latc-feed-freq">126.350 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+      <a class="latc-feed-card" href="https://www.liveatc.net/search/?icao=CYQB" target="_blank" rel="noopener">
+        <div class="latc-feed-icon">✈️</div>
+        <div class="latc-feed-name" data-en="Flight Service (FIS)" data-fr="Service de vol (FIS)">Flight Service (FIS)</div>
+        <div class="latc-feed-freq">126.700 MHz</div>
+        <div class="latc-feed-mode">AM</div>
+        <div class="latc-feed-listen" data-en="▶ Listen on LiveATC" data-fr="▶ Écouter sur LiveATC">▶ Listen on LiveATC</div>
+      </a>
+    </div>
+    <div style="padding:1rem 1.2rem;background:var(--deep);border-top:1px solid var(--border);font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);line-height:1.7">
+      <span data-en="LiveATC.net sets X-Frame-Options: DENY on all pages and their embed player uses discontinued Flash — direct embedding is not technically possible. Links open the CYQB feed page in a new tab." data-fr="LiveATC.net définit X-Frame-Options: DENY sur toutes ses pages et son lecteur intégré utilise Flash abandonné — l'intégration directe n'est pas techniquement possible. Les liens ouvrent la page CYQB dans un nouvel onglet.">LiveATC.net sets X-Frame-Options: DENY on all pages and their embed player uses discontinued Flash — direct embedding is not technically possible. Links open the CYQB feed page in a new tab.</span>
+    </div>
+  </div>
+
+  <!-- RTL-SDR PANEL -->
+  <div class="stream-panel hidden" id="panel-sdr">
+    <div class="stream-panel-header">
+      <span class="stream-panel-title" data-en="RTL-SDR v3 — Direct Icecast Stream" data-fr="RTL-SDR v3 — Flux Icecast Direct">RTL-SDR v3 — Direct Icecast Stream</span>
+      <div class="stream-panel-actions">
+        <span class="stream-note" style="color:var(--amber)" data-en="⚠ Paste your Icecast URL below to connect" data-fr="⚠ Collez votre URL Icecast ci-dessous">⚠ Paste your Icecast URL below to connect</span>
+      </div>
+    </div>
+    <div class="sdr-player-wrap">
+      <canvas id="scannerWave" height="64" style="width:100%;display:block;background:var(--panel);border-bottom:1px solid var(--border)"></canvas>
+      <div class="sdr-status-bar">
+        <div class="sdr-freq-display" id="sdrFreqDisplay">— — — MHz</div>
+        <div class="sdr-status-pill" id="sdrStatus">OFFLINE</div>
+        <div style="display:flex;align-items:center;gap:0.6rem;margin-left:auto">
+          <label style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;color:var(--text-dim)" data-en="VOL" data-fr="VOL">VOL</label>
+          <input type="range" min="0" max="100" value="80" id="sdrVol" class="sdr-range" oninput="setSdrVol(this.value)">
+        </div>
+      </div>
+      <div class="sdr-ch-label" data-en="// SELECT CHANNEL" data-fr="// CHOISIR CANAL">// SELECT CHANNEL</div>
+      <div class="sdr-ch-grid">
+        <button class="sdr-ch-btn" onclick="selectSdrCh('154.220','SQ D3 Lac-Beauport','FM',this)"><span class="sdr-ch-hz">154.220</span><span class="sdr-ch-name" data-en="SQ D3 Lac-Beauport" data-fr="SQ D3 Lac-Beauport">SQ D3 Lac-Beauport</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('166.635','SQ D3 Jacques-Cartier','FM',this)"><span class="sdr-ch-hz">166.635</span><span class="sdr-ch-name" data-en="SQ D3 Jacques-Cartier" data-fr="SQ D3 Jacques-Cartier">SQ D3 Jacques-Cartier</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('155.790','Incendie Beaupré','FM',this)"><span class="sdr-ch-hz">155.790</span><span class="sdr-ch-name" data-en="Incendie Beaupré" data-fr="Incendie Beaupré">Incendie Beaupré</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('423.2125','Ambulance QC-Métro','FM',this)"><span class="sdr-ch-hz">423.2125</span><span class="sdr-ch-name" data-en="Ambulance QC-Métro" data-fr="Ambulance QC-Métro">Ambulance QC-Métro</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('119.500','YQB Approach','AM',this)"><span class="sdr-ch-hz">119.500</span><span class="sdr-ch-name" data-en="YQB Approach" data-fr="YQB Approche">YQB Approach</span><span class="sdr-ch-mode">AM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('160.815','CN Rail Québec Sub','FM',this)"><span class="sdr-ch-hz">160.815</span><span class="sdr-ch-name" data-en="CN Rail Québec Sub" data-fr="CN Rail Sub Québec">CN Rail Québec Sub</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('453.050','RTC Bus Québec','FM',this)"><span class="sdr-ch-hz">453.050</span><span class="sdr-ch-name">RTC Bus Québec</span><span class="sdr-ch-mode">FM</span></button>
+        <button class="sdr-ch-btn" onclick="selectSdrCh('146.940','VE2RQB Répéteur','FM',this)"><span class="sdr-ch-hz">146.940</span><span class="sdr-ch-name" data-en="VE2RQB Repeater" data-fr="Répéteur VE2RQB">VE2RQB Repeater</span><span class="sdr-ch-mode">FM</span></button>
+      </div>
+      <audio id="sdrAudio" preload="none"></audio>
+      <div class="sdr-url-config">
+        <div class="sdr-url-label" data-en="// Icecast stream URL — paste your rtl_fm → icecast2 mount URL" data-fr="// URL flux Icecast — collez l'URL de montage rtl_fm → icecast2">// Icecast stream URL — paste your rtl_fm → icecast2 mount URL</div>
+        <div class="sdr-url-row">
+          <input type="text" id="sdrUrlInput" class="sdr-url-input" placeholder="http://your-server:8000/qc-154220.mp3">
+          <button class="sdr-url-apply" onclick="applySdrUrl()" data-en="▶ CONNECT" data-fr="▶ CONNECTER">▶ CONNECT</button>
+        </div>
+        <div class="sdr-url-hint">
+          <span data-en="Setup:" data-fr="Config :">Setup:</span>
+          <code>rtl_fm -f 154220000 -M fm -s 200000 -r 48000 - | ffmpeg -i pipe:0 -acodec libmp3lame -ab 32k -f mp3 icecast://source:pass@localhost:8000/stream.mp3</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+</div>
+
 <footer>
-  <span>ScanQC — Québec,QC </span>
-  <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(185, 6, 6, 0.5);">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
-  <span id="footer-camera-credit">Camera data: <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
+  <span>ScanQC — Québec, Québec</span>
+  <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);text-align:center;">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
+  <span id="footer-camera-credit">Données caméras : <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
 </footer>
 
 <div class="modal-overlay" id="camModal" onclick="if(event.target===this)closeModal()">
@@ -505,7 +1160,7 @@
 
 <script>
 // ── LANGUAGE ──────────────────────────────────────────────
-let lang = localStorage.getItem('scanqc-lang') || 'en';
+let lang = localStorage.getItem('scanqc-lang') || 'fr';
 
 function setLang(l) {
   lang = l;
@@ -931,6 +1586,12 @@ const cameras = [
   {id:3628, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / rue Léon-Harmel',      en:'A-740 N at rue Léon-Harmel'},
   {id:3529, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / boul. Wilfrid-Hamel',  en:'A-740 N at boul. Wilfrid-Hamel'},
   {id:3530, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / boul. Wilfrid-Hamel',   en:'A-740 S at boul. Wilfrid-Hamel'},
+  {id:3514, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / boul. Père-Lelièvre',   en:'A-740 S at boul. Père-Lelièvre'},
+  {id:3513, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / boul. Père-Lelièvre',  en:'A-740 N at boul. Père-Lelièvre'},
+  {id:3575, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / aut. 40',               en:'A-740 S at A-40'},
+  {id:3576, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / aut. 40',              en:'A-740 N at A-40'},
+  {id:3506, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. sud) / boul. Lebourgneuf',     en:'A-740 S at boul. Lebourgneuf'},
+  {id:3914, r:'quebec', sub:'qc-a740', fr:'A-740 (dir. nord) / boul. Lebourgneuf',    en:'A-740 N at boul. Lebourgneuf'},
   // ── QUÉBEC CITY — R-138 ───────────────────────────────────────────────────
   {id:3955, r:'quebec', sub:'qc-r138', fr:'R-138 (dir. ouest) / ch. du Massif',       en:'R-138 W at ch. du Massif'},
   {id:3956, r:'quebec', sub:'qc-r138', fr:'R-138 (dir. est) / ch. du Massif',         en:'R-138 E at ch. du Massif'},
@@ -1178,6 +1839,106 @@ setInterval(() => {
     if (ts) ts.textContent = new Date().toLocaleTimeString('fr-CA', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
   });
 }, 180000);
+
+// ── STREAM PLAYER ────────────────────────────────────────────
+const LIVEATC_FEEDS = {};
+
+function switchStream(id, btn){
+  document.querySelectorAll('.stream-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.stream-panel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('panel-'+id).classList.remove('hidden');
+  if(id==='broadcastify'){
+    const fr=document.getElementById('iframe-broadcastify');
+    if(!fr.src) fr.src='https://www.broadcastify.com/listen/ctid/5207';
+  }
+}
+
+// SDR player
+let sdrUrl = '';
+let sdrAudioCtx = null, sdrAnalyser = null, sdrSource = null;
+
+function selectSdrCh(freq, name, mode, btn){
+  document.querySelectorAll('.sdr-ch-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sdrFreqDisplay').textContent = freq + ' MHz';
+  // If URL is set, reload audio with same URL (channel selection is cosmetic — real SDR switching requires server-side rtl_fm restart)
+  const audio = document.getElementById('sdrAudio');
+  if(sdrUrl && !audio.paused){ audio.load(); audio.play().catch(()=>{}); }
+}
+
+function setSdrVol(v){
+  const a = document.getElementById('sdrAudio');
+  a.volume = v/100;
+}
+
+function applySdrUrl(){
+  const input = document.getElementById('sdrUrlInput');
+  const url = input.value.trim();
+  if(!url){ input.style.borderColor='rgba(255,51,68,0.6)'; setTimeout(()=>{input.style.borderColor='';},1500); return; }
+  sdrUrl = url;
+  const audio = document.getElementById('sdrAudio');
+  audio.src = url;
+  audio.volume = document.getElementById('sdrVol').value/100;
+  const pill = document.getElementById('sdrStatus');
+  pill.textContent = lang==='fr'?'CONNEXION…':'CONNECTING…';
+  pill.style.color='var(--amber)'; pill.style.borderColor='rgba(255,170,0,0.4)';
+  audio.play().then(()=>{
+    pill.textContent = lang==='fr'?'EN DIRECT':'LIVE';
+    pill.style.color='var(--green)'; pill.style.borderColor='rgba(0,255,136,0.4)';
+    pill.classList.add('live');
+    initSdrVisualizer(audio);
+  }).catch(()=>{
+    pill.textContent = lang==='fr'?'ERREUR':'ERROR';
+    pill.style.color='var(--red)'; pill.style.borderColor='rgba(255,51,68,0.4)';
+  });
+}
+
+function initSdrVisualizer(audio){
+  if(sdrAudioCtx) return;
+  sdrAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  sdrAnalyser = sdrAudioCtx.createAnalyser();
+  sdrAnalyser.fftSize = 256;
+  sdrSource = sdrAudioCtx.createMediaElementSource(audio);
+  sdrSource.connect(sdrAnalyser);
+  sdrAnalyser.connect(sdrAudioCtx.destination);
+  drawSdrWave();
+}
+
+function drawSdrWave(){
+  const canvas = document.getElementById('scannerWave');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = canvas.height;
+  if(canvas.width !== W) canvas.width = W;
+  const buf = new Uint8Array(sdrAnalyser ? sdrAnalyser.frequencyBinCount : 128);
+  if(sdrAnalyser) sdrAnalyser.getByteTimeDomainData(buf);
+
+  ctx.fillStyle='rgba(10,18,14,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(30,48,40,0.5)'; ctx.lineWidth=1;
+  for(let i=1;i<4;i++){ ctx.beginPath(); ctx.moveTo(0,H*i/4); ctx.lineTo(W,H*i/4); ctx.stroke(); }
+
+  ctx.beginPath(); ctx.strokeStyle='rgba(0,255,136,0.8)'; ctx.lineWidth=1.5;
+  for(let i=0;i<buf.length;i++){
+    const x=i/buf.length*W, y=sdrAnalyser?(buf[i]/128-1)*H/2+H/2 : H/2+(Math.random()-0.5)*3;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  if(!sdrAnalyser){
+    // idle flatline
+    let _t2=(window._sdrT||0)+0.05; window._sdrT=_t2;
+    ctx.beginPath(); ctx.strokeStyle='rgba(0,255,136,0.25)'; ctx.lineWidth=1;
+    for(let x=0;x<W;x++){
+      const y=H/2+(Math.random()-0.5)*2+Math.sin(x*0.07+_t2)*1.2;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  requestAnimationFrame(drawSdrWave);
+}
+
+// Init scanner wave immediately (idle mode)
+drawSdrWave();
 
 </script>
 </body>
