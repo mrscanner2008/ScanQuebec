@@ -57,6 +57,11 @@
   .ticker-item span{color:var(--green)}
   @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
+  /* HERO SPECTRUM */
+  .hero-spectrum{position:absolute;bottom:2.15rem;left:0;right:0;padding:0 0;pointer-events:none;z-index:1}
+  .hero-spectrum canvas{width:100%;height:80px;display:block;opacity:0.9}
+  .hero-spectrum-labels{display:flex;justify-content:space-between;padding:0 1rem;font-family:var(--mono);font-size:0.52rem;color:rgba(106,138,122,0.55);letter-spacing:0.06em;pointer-events:none;position:absolute;bottom:2.18rem;left:0;right:0}
+
   /* SECTIONS */
   section{padding:5rem 4rem}
   .section-tag{font-family:var(--mono);font-size:0.68rem;color:var(--green);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.7rem}
@@ -137,7 +142,7 @@
   .gear-list li::before{content:'►';color:var(--green);font-size:0.55rem;flex-shrink:0}
 
   /* FOOTER */
-  footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim)}
+  footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:Red(--text-dim)}
   footer a{color:var(--text-dim);text-decoration:none}
   footer a:hover{color:var(--green)}
 
@@ -220,6 +225,13 @@
     </div>
   </div>
   <div class="ticker"><div class="ticker-inner" id="tickerContent"></div></div>
+  <!-- Hero spectrum display -->
+  <div class="hero-spectrum"><canvas id="heroSpec" height="72"></canvas></div>
+  <div class="hero-spectrum-labels">
+    <span>150 MHz</span><span>154 MHz</span><span>158 MHz</span><span>162 MHz</span>
+    <span>166 MHz</span><span>170 MHz</span><span>174 MHz</span><span>420 MHz</span>
+    <span>450 MHz</span><span>460 MHz</span><span>850 MHz</span><span>860 MHz</span>
+  </div>
 </section>
 </div>
 
@@ -236,17 +248,17 @@
       <div class="tag-list"><span class="tag green">P25 P1/P2</span><span class="tag green">DMR</span><span class="tag amber" data-en="Base Station" data-fr="Station de base">Base Station</span><span class="tag">Wi-Fi</span><span class="tag cyan">NXDN</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD325P2</div>
-      <div class="scanner-spec" data-en="Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
+      <div class="scanner-brand">Uniden</div><div class="scanner-model">SDS100</div>
+      <div class="scanner-spec" data-en="Portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
       <div class="tag-list"><span class="tag green">P25 P2</span><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">25–1300 MHz</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">Whistler</div><div class="scanner-model">WS1095</div>
-      <div class="scanner-spec" data-en="Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity." data-fr="Scanner numérique de bureau avec architecture PSR-500. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Ez-Scan et capacité de 6 000 canaux.">Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity.</div>
+      <div class="scanner-brand">Uniden</div><div class="scanner-model">SDS200</div>
+      <div class="scanner-spec" data-en="Desktop digital scanner with SDR architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Proscan software." data-fr="Scanner numérique de bureau avec architecture SDR. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Proscan.">Desktop digital scanner with SDR architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Proscan software.</div>
       <div class="tag-list"><span class="tag green">P25</span><span class="tag amber" data-en="Desktop" data-fr="Bureau">Desktop</span><span class="tag">EZ-Scan</span></div>
     </div>
     <div class="scanner-card">
-      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v3</div>
+      <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v5</div>
       <div class="scanner-spec" data-en="Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS." data-fr="Dongle radio logicielle couvrant 500 kHz – 1,75 GHz. Utilisé avec SDR# ou GQRX pour la surveillance large bande, le décodage ADS-B et ACARS.">Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS.</div>
       <div class="tag-list"><span class="tag cyan">SDR</span><span class="tag">ADS-B</span><span class="tag">ACARS</span><span class="tag green">0.5–1750 MHz</span></div>
     </div>
@@ -287,6 +299,12 @@
       style="display:inline-flex;align-items:center;gap:0.6rem;font-family:var(--mono);font-size:0.72rem;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:0.45rem 1rem;letter-spacing:0.1em;text-decoration:none;transition:all 0.2s;"
       onmouseover="this.style.background='rgba(0,255,136,0.08)'" onmouseout="this.style.background='transparent'">
       <span>↗</span> RadioReference — Capitale-Nationale (ctid/5207)
+    </a>
+    <div style="margin-bottom:2rem;">
+    <a href="https://www.infoscan.org/forum/" target="_blank" rel="noopener"
+      style="display:inline-flex;align-items:center;gap:0.6rem;font-family:var(--mono);font-size:0.72rem;color:var(--green);border:1px solid rgba(0,255,136,0.3);padding:0.45rem 1rem;letter-spacing:0.1em;text-decoration:none;transition:all 0.2s;"
+      onmouseover="this.style.background='rgba(0,255,136,0.08)'" onmouseout="this.style.background='transparent'">
+      <span>↗</span> WWW.infoscan.org
     </a>
   </div>
   <div class="freq-layout">
@@ -427,23 +445,24 @@
   <h2 id="h2-about" data-en='The <span style="color:var(--green)">Passion</span>' data-fr='La <span style="color:var(--green)">Passion</span>'>The <span style="color:var(--green)">Passion</span></h2>
   <div class="about-grid">
     <div class="about-block">
-      <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Montréal au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
-      <p data-en="Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Montréal, Québec, ma configuration de surveillance couvre les services d'urgence VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
+      <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Quebec emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Quebec au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Quebec emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
+      <p data-en="Based in Québec, my monitoring setup covers HF/VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Québec, ma configuration de surveillance couvre les services d'urgence HF/VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Québec, my monitoring setup covers HF/VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
       <p data-en="The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying." data-fr="Le réseau de caméras MTQ est un complément fascinant à la surveillance radio — quand vous entendez un incident sur le scanner, vous pouvez souvent afficher la caméra de circulation la plus proche pour voir les conditions réelles. Cette synthèse de surveillance audio et de confirmation visuelle est singulièrement satisfaisante.">The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying.</p>
       <p data-en="This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network." data-fr="Ce site sert de référence pour les passionnés de la région du Québec — listes de fréquences, revues d'équipements et accès au réseau de caméras MTQ.">This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network.</p>
       <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;">
         <a class="btn" href="https://www.quebec511.info" target="_blank" data-en="Québec 511 Official →" data-fr="Québec 511 Officiel →">Québec 511 Official →</a>
-        <a class="btn btn-secondary" href="https://www.radioreference.com/apps/db/?ctid=CAF006" target="_blank">RadioReference QC</a>
+        <a class="btn btn-secondary" href="https://www.radioreference.com/db/browse/stid/111" target="_blank">RadioReference QC</a>
       </div>
     </div>
     <div>
       <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1rem;" data-en="Current Monitoring Setup" data-fr="Configuration de surveillance actuelle">Current Monitoring Setup</div>
       <ul class="gear-list">
         <li data-en="Uniden BCD536HP — P25 P2 home base"           data-fr="Uniden BCD536HP — Base fixe P25 P2">Uniden BCD536HP — P25 P2 home base</li>
-        <li data-en="RTL-SDR v3 + SDR# — wideband monitoring"      data-fr="RTL-SDR v3 + SDR# — surveillance large bande">RTL-SDR v3 + SDR# — wideband monitoring</li>
+        <li data-en="RTL-SDR v5 + SDR# — wideband monitoring"      data-fr="RTL-SDR v5 + SDR# — surveillance large bande">RTL-SDR v5 + SDR# — wideband monitoring</li>
         <li data-en="Diamond D-130J Discone — 25–1300 MHz"         data-fr="Discone Diamond D-130J — 25–1300 MHz">Diamond D-130J Discone — 25–1300 MHz</li>
         <li data-en="Virtual Radar Server — ADS-B tracking"        data-fr="Virtual Radar Server — suivi ADS-B">Virtual Radar Server — ADS-B tracking</li>
         <li data-en="DSD+ — digital voice decoder"                 data-fr="DSD+ — décodeur vocal numérique">DSD+ — digital voice decoder</li>
+        <li data-en="DSD-FME — digital voice decoder"              data-fr="DSD-FME — décodeur vocal numérique">DSD-FME — digital voice decoder</li>
         <li data-en="trunk-recorder — P25 logging"                 data-fr="trunk-recorder — journalisation P25">trunk-recorder — P25 logging</li>
         <li data-en="Unitrunker — trunking follow"                 data-fr="Unitrunker — suivi de trunk">Unitrunker — trunking follow</li>
         <li data-en="GQRX — SDR on Linux workstation"              data-fr="GQRX — SDR sur station Linux">GQRX — SDR on Linux workstation</li>
@@ -466,8 +485,8 @@
 </div>
 
 <footer>
-  <span>ScanQC — Montréal, Québec</span>
-  <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
+  <span>ScanQC — Québec,QC </span>
+  <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(185, 6, 6, 0.5);">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
   <span id="footer-camera-credit">Camera data: <a href="https://www.quebec511.info" target="_blank">Transports Québec</a></span>
 </footer>
 
@@ -561,6 +580,167 @@ function genWave(id,amp,off,spd){
 }
 genWave('wave1',35,0,0.015);
 genWave('wave2',20,Math.PI,0.02);
+
+// ── HERO SPECTRUM ANALYSER ────────────────────────────────
+(function(){
+  const canvas = document.getElementById('heroSpec');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // Known Quebec City frequencies mapped to canvas X positions (0–1 normalised)
+  // Frequency bands shown: 150–175 MHz + 420–465 MHz (compressed)
+  const KNOWN = [
+    // SQ D3
+    {pos:0.055, label:'SQ 154.2', color:'#ff4455', w:2, base:0.55},
+    {pos:0.105, label:'SQ 166.6', color:'#ff4455', w:2, base:0.50},
+    {pos:0.155, label:'SQ 167.0', color:'#ff4455', w:2, base:0.45},
+    {pos:0.258, label:'SQ 171.1', color:'#ff8844', w:2, base:0.35},
+    {pos:0.282, label:'SQ 172.0', color:'#ff8844', w:2, base:0.38},
+    // Incendie
+    {pos:0.016, label:'Inc 149.2', color:'#ffaa00', w:2, base:0.40},
+    {pos:0.043, label:'Inc 151.5', color:'#ffaa00', w:2, base:0.38},
+    {pos:0.078, label:'Inc 155.3', color:'#ffaa00', w:2, base:0.42},
+    {pos:0.085, label:'Inc 155.7', color:'#ffaa00', w:2, base:0.44},
+    {pos:0.210, label:'Inc 162.8', color:'#ffaa00', w:2, base:0.36},
+    // Ambulance
+    {pos:0.710, label:'Amb 413.3', color:'#00e5ff', w:3, base:0.60},
+    {pos:0.780, label:'Amb 423.2', color:'#00e5ff', w:3, base:0.65},
+    {pos:0.855, label:'Amb 450.0', color:'#00e5ff', w:2, base:0.48},
+    {pos:0.880, label:'Amb 461.2', color:'#00e5ff', w:2, base:0.44},
+    // Aviation YQB
+    {pos:0.940, label:'YQB 119.5', color:'#00ff88', w:3, base:0.72},
+    // Noise floor bumps
+    {pos:0.33, label:'', color:'#1e6040', w:4, base:0.18},
+    {pos:0.50, label:'', color:'#1a4a30', w:6, base:0.14},
+    {pos:0.62, label:'', color:'#1e4535', w:3, base:0.20},
+  ];
+
+  // Noise floor per bar
+  const BARS = 220;
+  const noise = Array.from({length: BARS}, () => 0.05 + Math.random() * 0.12);
+  const phase = Array.from({length: BARS}, () => Math.random() * Math.PI * 2);
+  const speeds = Array.from({length: BARS}, () => 0.008 + Math.random() * 0.025);
+
+  // Signal envelopes — each known freq drives a gaussian peak
+  function gaussian(x, mu, sigma){ return Math.exp(-0.5 * ((x - mu)/sigma) ** 2); }
+
+  let t = 0;
+  function resize(){
+    canvas.width = canvas.offsetWidth;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw(){
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, 'rgba(0,0,0,0)');
+    bg.addColorStop(1, 'rgba(0,10,6,0.6)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw grid lines
+    ctx.strokeStyle = 'rgba(30,48,40,0.5)';
+    ctx.lineWidth = 1;
+    for(let g = 0; g < 5; g++){
+      const y = H * (g / 4);
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    for(let g = 0; g < 11; g++){
+      const x = W * (g / 10);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+
+    const bw = W / BARS;
+
+    for(let i = 0; i < BARS; i++){
+      const xn = i / BARS; // normalised position
+      let amp = noise[i] + 0.04 * Math.sin(phase[i] + t * speeds[i]);
+
+      // Add contributions from known signals
+      for(const sig of KNOWN){
+        const sigma = sig.w / BARS;
+        const g = gaussian(xn, sig.pos, sigma);
+        if(g > 0.001){
+          // Flicker the signal
+          const flicker = sig.base + 0.08 * Math.sin(t * 3.1 + i * 0.4) + 0.04 * Math.sin(t * 7.3 + i);
+          amp += g * flicker;
+        }
+      }
+      amp = Math.min(amp, 0.98);
+
+      const barH = amp * H;
+      const x = i * bw;
+
+      // Color based on amplitude
+      let r, g2, b;
+      if(amp > 0.5){
+        // Hot signal — green to white
+        const hot = (amp - 0.5) / 0.5;
+        r = Math.round(hot * 255);
+        g2 = 255;
+        b = Math.round(hot * 200);
+      } else if(amp > 0.2){
+        // Active — dim green
+        r = 0; g2 = Math.round(80 + amp * 350); b = Math.round(amp * 80);
+      } else {
+        // Noise floor — very dim
+        r = 0; g2 = Math.round(30 + amp * 100); b = Math.round(amp * 40);
+      }
+
+      // Check if near a known signal for colour override
+      for(const sig of KNOWN){
+        const sigma = sig.w / BARS;
+        const gv = gaussian(xn, sig.pos, sigma);
+        if(gv > 0.3 && sig.color !== '#1e6040' && sig.color !== '#1a4a30' && sig.color !== '#1e4535'){
+          const hex = sig.color.replace('#','');
+          r = parseInt(hex.slice(0,2),16);
+          g2 = parseInt(hex.slice(2,4),16);
+          b = parseInt(hex.slice(4,6),16);
+          break;
+        }
+      }
+
+      // Draw bar with gradient
+      const grad = ctx.createLinearGradient(x, H - barH, x, H);
+      grad.addColorStop(0, `rgba(${r},${g2},${b},0.9)`);
+      grad.addColorStop(0.6, `rgba(${r},${g2},${b},0.4)`);
+      grad.addColorStop(1, `rgba(${r},${g2},${b},0.05)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, H - barH, Math.max(bw - 1, 1), barH);
+
+      // Peak dot
+      if(amp > 0.28){
+        ctx.fillStyle = `rgba(${r},${g2},${b},0.95)`;
+        ctx.fillRect(x, H - barH - 1, Math.max(bw - 1, 1), 2);
+      }
+    }
+
+    // Label the hot signals
+    ctx.font = `600 9px 'Share Tech Mono', monospace`;
+    for(const sig of KNOWN){
+      if(!sig.label) continue;
+      const x = sig.pos * W;
+      const peakAmp = sig.base + 0.08 * Math.sin(t * 3.1) + 0.04;
+      if(peakAmp < 0.3) continue;
+      const y = H - peakAmp * H - 6;
+      if(y < 4) continue;
+      const hex = sig.color.replace('#','');
+      const r = parseInt(hex.slice(0,2),16);
+      const g2 = parseInt(hex.slice(2,4),16);
+      const b = parseInt(hex.slice(4,6),16);
+      ctx.fillStyle = `rgba(${r},${g2},${b},0.8)`;
+      ctx.fillText(sig.label, Math.min(x + 2, W - 58), y);
+    }
+
+    t += 0.04;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 
 // ── SPECTRUM ──────────────────────────────────────────────
 const sc=document.getElementById('specBars');
