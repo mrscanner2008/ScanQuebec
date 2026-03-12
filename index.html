@@ -163,6 +163,10 @@
   .gear-list li{display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.78rem;color:var(--text);padding:0.6rem 0.8rem;border:1px solid var(--border);background:var(--card);transition:border-color 0.2s}
   .gear-list li:hover{border-color:var(--green-dim)}
   .gear-list li::before{content:'►';color:var(--green);font-size:0.55rem;flex-shrink:0}
+  .gear-link{color:var(--green);text-decoration:none;border-bottom:1px solid rgba(0,255,136,0.3);transition:color 0.15s,border-color 0.15s}
+  .gear-link:hover{color:#fff;border-color:var(--green)}
+  .scanner-link{display:inline-block;margin-top:0.9rem;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;color:var(--green-dim);text-decoration:none;border:1px solid rgba(0,255,136,0.25);padding:0.2rem 0.6rem;transition:all 0.2s}
+  .scanner-link:hover{color:var(--green);border-color:var(--green);background:var(--green-faint)}
 
   /* FOOTER */
   footer{background:var(--panel);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:0.68rem;color:var(--text-dim)}
@@ -375,31 +379,37 @@
       <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD536HP</div>
       <div class="scanner-spec" data-en="HomePatrol Series digital scanner with Wi-Fi connectivity. Supports P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. 25,000 systems capacity, GPS-ready for location-based scanning." data-fr="Scanner numérique série HomePatrol avec connectivité Wi-Fi. Compatible P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. Capacité de 25 000 systèmes, prêt GPS pour la surveillance géolocalisée.">HomePatrol Series digital scanner with Wi-Fi connectivity. Supports P25 Phase I &amp; II, MotoTRBO, DMR, NXDN. 25,000 systems capacity, GPS-ready for location-based scanning.</div>
       <div class="tag-list"><span class="tag green">P25 P1/P2</span><span class="tag green">DMR</span><span class="tag amber" data-en="Base Station" data-fr="Station de base">Base Station</span><span class="tag">Wi-Fi</span><span class="tag cyan">NXDN</span></div>
+      <a href="https://www.uniden.com/products/bcd536hp" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
       <div class="scanner-brand">Uniden</div><div class="scanner-model">BCD325P2</div>
       <div class="scanner-spec" data-en="Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz." data-fr="Scanner numérique portable compact avec support TDMA Phase 2. Idéal pour l'utilisation mobile. Couverture de 25 MHz à 1,3 GHz.">Compact portable digital scanner with Phase 2 TDMA support. Ideal for mobile use with a sturdy form factor. Coverage from 25 MHz to 1.3 GHz.</div>
       <div class="tag-list"><span class="tag green">P25 P2</span><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">25–1300 MHz</span></div>
+      <a href="https://www.uniden.com/products/bcd325p2" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
       <div class="scanner-brand">Whistler</div><div class="scanner-model">WS1095</div>
       <div class="scanner-spec" data-en="Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity." data-fr="Scanner numérique de bureau avec architecture PSR-500. Couvre VHF, UHF, 700/800 MHz. Programmation facile avec Ez-Scan et capacité de 6 000 canaux.">Desktop digital scanner with PSR-500 architecture. Covers VHF, UHF, 700/800 MHz. Easy programming with Ez-Scan software and 6,000 channel capacity.</div>
       <div class="tag-list"><span class="tag green">P25</span><span class="tag amber" data-en="Desktop" data-fr="Bureau">Desktop</span><span class="tag">EZ-Scan</span></div>
+      <a href="https://www.whistlergroup.com/products/ws1095" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
       <div class="scanner-brand">RTL-SDR</div><div class="scanner-model">RTL-SDR v3</div>
       <div class="scanner-spec" data-en="Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS." data-fr="Dongle radio logicielle couvrant 500 kHz – 1,75 GHz. Utilisé avec SDR# ou GQRX pour la surveillance large bande, le décodage ADS-B et ACARS.">Software-defined radio dongle covering 500 kHz – 1.75 GHz. Used with SDR# or GQRX for wideband monitoring, decoding ADS-B aircraft transponders, and ACARS.</div>
       <div class="tag-list"><span class="tag cyan">SDR</span><span class="tag">ADS-B</span><span class="tag">ACARS</span><span class="tag green">0.5–1750 MHz</span></div>
+      <a href="https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
       <div class="scanner-brand">Icom</div><div class="scanner-model">IC-R20</div>
       <div class="scanner-spec" data-en="Wide-coverage portable receiver, 150 kHz – 3.3 GHz (with gaps). Simultaneous dual reception, voice scrambler, and spectrum scope. A classic for field monitoring." data-fr="Récepteur portable large couverture, 150 kHz – 3,3 GHz. Double réception simultanée, brouilleur vocal et oscilloscope de spectre. Un classique pour la surveillance terrain.">Wide-coverage portable receiver, 150 kHz – 3.3 GHz (with gaps). Simultaneous dual reception, voice scrambler, and spectrum scope. A classic for field monitoring.</div>
       <div class="tag-list"><span class="tag amber" data-en="Portable" data-fr="Portable">Portable</span><span class="tag">Dual-RX</span><span class="tag green">0.15–3.3 GHz</span></div>
+      <a href="https://www.icom.co.jp/world/products/receivers/receivers/ic-r20/" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
     <div class="scanner-card">
       <div class="scanner-brand">HackRF</div><div class="scanner-model">HackRF One</div>
       <div class="scanner-spec" data-en="Half-duplex SDR transceiver, 1 MHz – 6 GHz. Used for signal analysis, replay attacks on test bench, trunked system reverse engineering, and GNU Radio experiments." data-fr="Émetteur-récepteur SDR semi-duplex, 1 MHz – 6 GHz. Utilisé pour l'analyse de signaux, les tests en laboratoire et les expériences GNU Radio.">Half-duplex SDR transceiver, 1 MHz – 6 GHz. Used for signal analysis, replay attacks on test bench, trunked system reverse engineering, and GNU Radio experiments.</div>
       <div class="tag-list"><span class="tag cyan">SDR TX/RX</span><span class="tag">GNU Radio</span><span class="tag green">1 MHz–6 GHz</span></div>
+      <a href="https://greatscottgadgets.com/hackrf/one/" target="_blank" rel="noopener" class="scanner-link" data-en="&#8599; Product page" data-fr="&#8599; Fiche produit">&#8599; Fiche produit</a>
     </div>
   </div>
   <div style="background:var(--panel);border:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;">
@@ -839,16 +849,16 @@
     <div>
       <div style="font-family:var(--cond);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1rem;" data-en="Current Monitoring Setup" data-fr="Configuration de surveillance actuelle">Current Monitoring Setup</div>
       <ul class="gear-list">
-        <li data-en="Uniden BCD536HP — P25 P2 home base"           data-fr="Uniden BCD536HP — Base fixe P25 P2">Uniden BCD536HP — P25 P2 home base</li>
-        <li data-en="RTL-SDR v3 + SDR# — wideband monitoring"      data-fr="RTL-SDR v3 + SDR# — surveillance large bande">RTL-SDR v3 + SDR# — wideband monitoring</li>
-        <li data-en="Diamond D-130J Discone — 25–1300 MHz"         data-fr="Discone Diamond D-130J — 25–1300 MHz">Diamond D-130J Discone — 25–1300 MHz</li>
-        <li data-en="Virtual Radar Server — ADS-B tracking"        data-fr="Virtual Radar Server — suivi ADS-B">Virtual Radar Server — ADS-B tracking</li>
-        <li data-en="DSD+ — digital voice decoder"                 data-fr="DSD+ — décodeur vocal numérique">DSD+ — digital voice decoder</li>
-        <li data-en="trunk-recorder — P25 logging"                 data-fr="trunk-recorder — journalisation P25">trunk-recorder — P25 logging</li>
-        <li data-en="Unitrunker — trunking follow"                 data-fr="Unitrunker — suivi de trunk">Unitrunker — trunking follow</li>
-        <li data-en="GQRX — SDR on Linux workstation"              data-fr="GQRX — SDR sur station Linux">GQRX — SDR on Linux workstation</li>
-        <li data-en="Broadcastify — stream archiving"              data-fr="Broadcastify — archivage de flux">Broadcastify — stream archiving</li>
-        <li data-en="Quebec 511 API — MTQ camera access"           data-fr="API Québec 511 — accès caméras MTQ">Quebec 511 API — MTQ camera access</li>
+        <li><a href="https://www.uniden.com/products/bcd536hp" target="_blank" rel="noopener" class="gear-link">Uniden BCD536HP</a> — <span data-en="P25 P2 home base" data-fr="Base fixe P25 P2">Base fixe P25 P2</span></li>
+        <li><a href="https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/" target="_blank" rel="noopener" class="gear-link">RTL-SDR v3</a> + <a href="https://www.sdrsharp.com" target="_blank" rel="noopener" class="gear-link">SDR#</a> — <span data-en="wideband monitoring" data-fr="surveillance large bande">surveillance large bande</span></li>
+        <li><a href="https://www.diamondantenna.net/d130j.html" target="_blank" rel="noopener" class="gear-link">Diamond D-130J Discone</a> — 25–1300 MHz</li>
+        <li><a href="https://www.virtualradarserver.co.uk" target="_blank" rel="noopener" class="gear-link">Virtual Radar Server</a> — <span data-en="ADS-B tracking" data-fr="suivi ADS-B">suivi ADS-B</span></li>
+        <li><a href="https://www.dsdplus.com" target="_blank" rel="noopener" class="gear-link">DSD+</a> — <span data-en="digital voice decoder" data-fr="décodeur vocal numérique">décodeur vocal numérique</span></li>
+        <li><a href="https://github.com/robotastic/trunk-recorder" target="_blank" rel="noopener" class="gear-link">trunk-recorder</a> — <span data-en="P25 logging" data-fr="journalisation P25">journalisation P25</span></li>
+        <li><a href="https://www.unitrunker.com" target="_blank" rel="noopener" class="gear-link">Unitrunker</a> — <span data-en="trunking follow" data-fr="suivi de trunk">suivi de trunk</span></li>
+        <li><a href="https://gqrx.dk" target="_blank" rel="noopener" class="gear-link">GQRX</a> — <span data-en="SDR on Linux workstation" data-fr="SDR sur station Linux">SDR sur station Linux</span></li>
+        <li><a href="https://www.broadcastify.com" target="_blank" rel="noopener" class="gear-link">Broadcastify</a> — <span data-en="stream archiving" data-fr="archivage de flux">archivage de flux</span></li>
+        <li><a href="https://www.quebec511.info" target="_blank" rel="noopener" class="gear-link">Québec 511</a> — <span data-en="MTQ camera access" data-fr="accès caméras MTQ">accès caméras MTQ</span></li>
       </ul>
       <div style="margin-top:2rem;background:var(--panel);border:1px solid var(--border);padding:1.5rem;">
         <div style="font-family:var(--mono);font-size:0.65rem;color:var(--green);letter-spacing:0.15em;margin-bottom:0.8rem;" data-en="// RESOURCES" data-fr="// RESSOURCES">// RESOURCES</div>
