@@ -421,9 +421,77 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
   .scanner-ch-status{display:flex;align-items:center;gap:0.4rem;font-size:0.65rem;letter-spacing:0.1em}
   .scanner-ch-bar{height:4px;background:var(--border);flex:1;min-width:60px;max-width:100px;border-radius:2px;overflow:hidden}
   .scanner-ch-bar-fill{height:100%;background:var(--green);width:0%;transition:width 0.1s;border-radius:2px}
+  /* ── PRIVATE PAGE ─────────────────────────────────────── */
+  #lock-overlay{position:fixed;inset:0;z-index:9000;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+  #lock-overlay.hidden{display:none}
+  .lock-box{background:var(--panel);border:1px solid var(--border);padding:2.5rem 2.5rem 2rem;width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:1.2rem;position:relative}
+  .lock-box::before{content:'';position:absolute;inset:0;border:1px solid rgba(0,255,136,0.08);pointer-events:none}
+  .lock-icon{font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 12px rgba(0,255,136,0.3))}
+  .lock-title{font-family:var(--cond);font-size:1.4rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;text-align:center}
+  .lock-sub{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);text-align:center;text-transform:uppercase}
+  .lock-input-wrap{position:relative;width:100%}
+  .lock-input{width:100%;background:var(--deep);border:1px solid var(--border);color:#fff;font-family:var(--mono);font-size:1rem;letter-spacing:0.18em;padding:0.75rem 2.8rem 0.75rem 1rem;outline:none;transition:border-color 0.2s;text-align:center}
+  .lock-input:focus{border-color:var(--green)}
+  .lock-input.error{border-color:var(--red);animation:shake 0.35s ease}
+  .lock-eye{position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:1rem;padding:0.2rem;transition:color 0.2s}
+  .lock-eye:hover{color:var(--green)}
+  .lock-btn{width:100%;background:var(--green);color:var(--black);font-family:var(--mono);font-size:0.8rem;font-weight:bold;letter-spacing:0.2em;text-transform:uppercase;border:none;padding:0.75rem;cursor:pointer;transition:background 0.2s}
+  .lock-btn:hover{background:#00e577}
+  .lock-error{font-family:var(--mono);font-size:0.7rem;color:var(--red);letter-spacing:0.1em;min-height:1em;text-align:center}
+  .lock-hint{font-family:var(--mono);font-size:0.58rem;color:rgba(106,138,122,0.4);text-align:center;letter-spacing:0.08em;margin-top:0.5rem}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+  /* Private page content */
+  .private-section{padding-top:6rem;padding-bottom:3rem}
+  .private-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem}
+  .private-lock-badge{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.18em;color:var(--green);background:var(--green-faint);border:1px solid rgba(0,255,136,0.2);padding:0.3rem 0.8rem;text-transform:uppercase}
+  .private-logout{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.12em;color:var(--text-dim);background:transparent;border:1px solid var(--border);padding:0.3rem 0.8rem;cursor:pointer;text-transform:uppercase;transition:all 0.2s}
+  .private-logout:hover{color:var(--red);border-color:var(--red)}
+  .private-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1px;background:var(--border);margin-bottom:1px}
+  .private-card{background:var(--card);padding:1.4rem}
+  .private-card-title{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem}
+  .private-card-title::before{content:'//';opacity:0.4}
+  .private-note{width:100%;min-height:140px;background:var(--deep);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:0.8rem;padding:0.8rem;resize:vertical;outline:none;line-height:1.6;transition:border-color 0.2s}
+  .private-note:focus{border-color:rgba(0,255,136,0.3)}
+  .private-kv-row{display:flex;gap:0.5rem;margin-bottom:0.4rem;align-items:center}
+  .private-kv-key{font-family:var(--mono);font-size:0.72rem;color:var(--text-dim);width:90px;flex-shrink:0;letter-spacing:0.05em}
+  .private-kv-val{flex:1;background:var(--deep);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:0.78rem;padding:0.3rem 0.6rem;outline:none;transition:border-color 0.2s}
+  .private-kv-val:focus{border-color:rgba(0,255,136,0.3)}
+  .private-kv-add{font-family:var(--mono);font-size:0.65rem;color:var(--green);background:none;border:1px dashed rgba(0,255,136,0.25);padding:0.3rem 0.8rem;cursor:pointer;letter-spacing:0.1em;margin-top:0.5rem;transition:all 0.2s;width:100%}
+  .private-kv-add:hover{background:var(--green-faint)}
+  .private-save-bar{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.2rem;background:var(--deep);border-top:1px solid var(--border);font-family:var(--mono);font-size:0.65rem;gap:1rem}
+  .private-save-btn{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.15em;padding:0.4rem 1.2rem;background:var(--green);color:var(--black);border:none;cursor:pointer;font-weight:bold;text-transform:uppercase;transition:background 0.2s}
+  .private-save-btn:hover{background:#00e577}
+  .private-save-status{color:var(--text-dim);letter-spacing:0.1em}
+
+  /* Light theme overrides */
+  [data-theme="light"] #lock-overlay{background:#fff}
+  [data-theme="light"] .lock-box{background:#f5f7f6;border-color:#c8d8d2}
+  [data-theme="light"] .lock-input{background:#fff;color:#111c17;border-color:#c8d8d2}
+  [data-theme="light"] .private-card{background:#fff}
+  [data-theme="light"] .private-note,[data-theme="light"] .private-kv-val{background:#f5f7f6;color:#111c17;border-color:#c8d8d2}
+
 </style>
 </head>
 <body>
+
+<!-- LOCK OVERLAY -->
+<div id="lock-overlay" class="hidden">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title" data-en="Private Access" data-fr="Accès Privé">Accès Privé</div>
+    <div class="lock-sub" data-en="Enter password to continue" data-fr="Entrez le mot de passe pour continuer">Entrez le mot de passe pour continuer</div>
+    <div class="lock-input-wrap">
+      <input type="password" id="lockInput" class="lock-input" placeholder="••••••••"
+             autocomplete="off" onkeydown="if(event.key==='Enter')checkLock()">
+      <button class="lock-eye" id="lockEye" onclick="toggleLockEye()" title="Afficher/Masquer">👁</button>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+    <button class="lock-btn" onclick="checkLock()" data-en="UNLOCK" data-fr="DÉVERROUILLER">DÉVERROUILLER</button>
+    <button onclick="closeLock()" style="background:none;border:none;font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.5rem" data-en="← Back" data-fr="← Retour">← Retour</button>
+    <div class="lock-hint" data-en="ScanQC · Private Zone" data-fr="ScanQC · Zone Privée">ScanQC · Zone Privée</div>
+  </div>
+</div>
 
 <nav>
   <a class="nav-logo" href="#" onclick="showPage('home')">ScanQC</a>
@@ -437,6 +505,7 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
     <li><a href="#" onclick="showPage('amateur')"    id="nav-amateur"     data-en="Amateur Radio"  data-fr="Radioamateur">Amateur Radio</a></li>
     <li><a href="#" onclick="showPage('coolstuff')"   id="nav-coolstuff"   data-en="Cool Stuff"   data-fr="Liens Cool">Cool Stuff</a></li>
     <li><a href="#" onclick="showPage('about')"       id="nav-about"       data-en="About"        data-fr="À propos">About</a></li>
+    <li><a href="#" onclick="showPrivate()" id="nav-private" data-en="🔒 Private" data-fr="🔒 Privé">🔒 Privé</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer le thème / Toggle theme">
@@ -1290,6 +1359,79 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
   </div>
 </div>
 
+<!-- PRIVATE PAGE -->
+<div id="page-private" class="page">
+<section class="private-section" style="padding-left:4rem;padding-right:4rem;max-width:1200px;margin:0 auto">
+  <div class="private-header">
+    <div>
+      <p class="section-tag">Zone Privée</p>
+      <h2>Notes & <span style="color:var(--green)">Configs</span></h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.8rem">
+      <span class="private-lock-badge">🔒 ACCÈS PRIVÉ</span>
+      <button class="private-logout" onclick="lockPrivate()" data-en="🔒 Lock" data-fr="🔒 Verrouiller">🔒 Verrouiller</button>
+    </div>
+  </div>
+
+  <div class="private-grid">
+
+    <!-- Notes libres -->
+    <div class="private-card">
+      <div class="private-card-title" data-en="Personal Notes" data-fr="Notes Personnelles">Notes Personnelles</div>
+      <textarea class="private-note" id="priv-notes" placeholder="Notes de fréquences, observations, todo..."></textarea>
+    </div>
+
+    <!-- Config SDR / IPs -->
+    <div class="private-card">
+      <div class="private-card-title" data-en="SDR / Network Config" data-fr="Config SDR / Réseau">Config SDR / Réseau</div>
+      <div id="priv-kv-list">
+        <div class="private-kv-row">
+          <span class="private-kv-key">RTL-SDR IP</span>
+          <input class="private-kv-val" type="text" placeholder="192.168.1.x">
+        </div>
+        <div class="private-kv-row">
+          <span class="private-kv-key">Icecast URL</span>
+          <input class="private-kv-val" type="text" placeholder="http://192.168.1.x:8000/stream.mp3">
+        </div>
+        <div class="private-kv-row">
+          <span class="private-kv-key">ProScan IP</span>
+          <input class="private-kv-val" type="text" placeholder="192.168.1.x:8080">
+        </div>
+        <div class="private-kv-row">
+          <span class="private-kv-key">SDR# URL</span>
+          <input class="private-kv-val" type="text" placeholder="">
+        </div>
+        <div class="private-kv-row">
+          <span class="private-kv-key">Mot de passe</span>
+          <input class="private-kv-val" type="password" placeholder="••••••••">
+        </div>
+      </div>
+      <button class="private-kv-add" onclick="addKvRow()" data-en="+ Add field" data-fr="+ Ajouter un champ">+ Ajouter un champ</button>
+    </div>
+
+    <!-- Fréquences personnelles -->
+    <div class="private-card">
+      <div class="private-card-title" data-en="Custom Frequency Log" data-fr="Journal de Fréquences">Journal de Fréquences</div>
+      <textarea class="private-note" id="priv-freqs" placeholder="154.220 MHz — SQ D3 confirmé chiffré P25&#10;423.212 MHz — Ambulance Québec-Métro&#10;..."></textarea>
+    </div>
+
+    <!-- Liens privés -->
+    <div class="private-card">
+      <div class="private-card-title" data-en="Private Links / Bookmarks" data-fr="Liens Privés / Signets">Liens Privés / Signets</div>
+      <textarea class="private-note" id="priv-links" placeholder="http://192.168.1.x:8080 — ProScan&#10;http://192.168.1.x:4567 — VRS&#10;..."></textarea>
+    </div>
+
+  </div>
+
+  <div class="private-save-bar">
+    <span class="private-save-status" id="privSaveStatus" data-en="Saved locally in your browser only" data-fr="Sauvegardé localement dans votre navigateur">Sauvegardé localement dans votre navigateur</span>
+    <button class="private-save-btn" onclick="savePrivateData()" data-en="💾 SAVE" data-fr="💾 SAUVEGARDER">💾 SAUVEGARDER</button>
+  </div>
+
+  <p style="font-family:var(--mono);font-size:0.58rem;color:rgba(106,138,122,0.35);margin-top:1.5rem;letter-spacing:0.08em;text-align:center" data-en="⚠ Data stored in localStorage — browser only, never transmitted. Clear browser data to erase." data-fr="⚠ Données stockées en localStorage — navigateur uniquement, jamais transmises. Effacer les données du navigateur pour supprimer.">⚠ Données stockées en localStorage — navigateur uniquement, jamais transmises.</p>
+</section>
+</div>
+
 <script>
 
 // ── THEME ─────────────────────────────────────────────────────────────────────
@@ -2125,6 +2267,110 @@ document.addEventListener('DOMContentLoaded', function() {
   const input = document.getElementById('proscanUrlInput');
   if (input) input.addEventListener('keydown', function(e) { if (e.key === 'Enter') loadProscan(); });
 });
+
+
+// ── PRIVATE PAGE ──────────────────────────────────────────────────────────────
+// ⚠ Change SCANQC_PRIVATE_PASSWORD to your desired password
+const SCANQC_PRIVATE_PASSWORD = 'MON_MOT_DE_PASSE';
+
+function showPrivate() {
+  // Always show lock screen — no session memory
+  document.getElementById('lockInput').value = '';
+  document.getElementById('lockError').textContent = '';
+  document.getElementById('lock-overlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('lockInput').focus(), 80);
+}
+
+function checkLock() {
+  const val = document.getElementById('lockInput').value;
+  const inp = document.getElementById('lockInput');
+  if (val === SCANQC_PRIVATE_PASSWORD) {
+    document.getElementById('lock-overlay').classList.add('hidden');
+    showPage('private');
+    loadPrivateData();
+  } else {
+    inp.classList.add('error');
+    document.getElementById('lockError').textContent =
+      lang === 'fr' ? '✕ Mot de passe incorrect' : '✕ Incorrect password';
+    setTimeout(() => inp.classList.remove('error'), 400);
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+function closeLock() {
+  document.getElementById('lock-overlay').classList.add('hidden');
+}
+
+function lockPrivate() {
+  showPage('home');
+}
+
+function toggleLockEye() {
+  const inp = document.getElementById('lockInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function addKvRow() {
+  const list = document.getElementById('priv-kv-list');
+  const row = document.createElement('div');
+  row.className = 'private-kv-row';
+  row.innerHTML = '<input class="private-kv-val" type="text" placeholder="Nom du champ" style="width:90px;flex-shrink:0">'
+                + '<input class="private-kv-val" type="text" placeholder="Valeur">';
+  list.appendChild(row);
+}
+
+function savePrivateData() {
+  try {
+    // Save textareas
+    ['notes','freqs','links'].forEach(k => {
+      const el = document.getElementById('priv-' + k);
+      if (el) localStorage.setItem('scanqc-priv-' + k, el.value);
+    });
+    // Save KV rows
+    const rows = document.querySelectorAll('#priv-kv-list .private-kv-row');
+    const kv = [];
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      if (inputs.length >= 2) kv.push({k: inputs[0].value, v: inputs[1].value});
+      else if (inputs.length === 1 && row.querySelector('.private-kv-key'))
+        kv.push({k: row.querySelector('.private-kv-key').textContent, v: inputs[0].value});
+    });
+    localStorage.setItem('scanqc-priv-kv', JSON.stringify(kv));
+    const st = document.getElementById('privSaveStatus');
+    if (st) { st.textContent = lang === 'fr' ? '✓ Sauvegardé !' : '✓ Saved!'; st.style.color = 'var(--green)';
+      setTimeout(() => { st.textContent = lang === 'fr' ? 'Sauvegardé localement dans votre navigateur' : 'Saved locally in your browser only'; st.style.color = ''; }, 2000); }
+  } catch(e) { console.warn('Save failed:', e); }
+}
+
+function loadPrivateData() {
+  try {
+    ['notes','freqs','links'].forEach(k => {
+      const el = document.getElementById('priv-' + k);
+      const saved = localStorage.getItem('scanqc-priv-' + k);
+      if (el && saved !== null) el.value = saved;
+    });
+    const kvRaw = localStorage.getItem('scanqc-priv-kv');
+    if (kvRaw) {
+      const kv = JSON.parse(kvRaw);
+      const list = document.getElementById('priv-kv-list');
+      // Update existing rows (first 5 are pre-defined)
+      const existingRows = list.querySelectorAll('.private-kv-row');
+      kv.forEach((item, i) => {
+        if (i < existingRows.length) {
+          const inp = existingRows[i].querySelector('input');
+          if (inp) inp.value = item.v || '';
+        } else {
+          const row = document.createElement('div');
+          row.className = 'private-kv-row';
+          row.innerHTML = '<span class="private-kv-key">' + (item.k||'') + '</span>'
+                        + '<input class="private-kv-val" type="text" value="' + (item.v||'').replace(/"/g,'&quot;') + '">';
+          list.appendChild(row);
+        }
+      });
+    }
+  } catch(e) { console.warn('Load failed:', e); }
+}
 
 </script>
 </body>
