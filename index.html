@@ -93,8 +93,12 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
   [data-theme="light"] .btn:hover{background:var(--green);color:#fff}
   [data-theme="light"] .freq-hz{color:var(--green)}
   [data-theme="light"] .tag.green{background:rgba(0,153,77,0.12);color:var(--green)}
-  [data-theme="light"] .stream-tab{background:#fff}
-  [data-theme="light"] .stream-tab.active{background:var(--panel);border-bottom-color:var(--green)}
+  [data-theme="light"] .stream-tab{background:#fff0f1;border-right-color:#ffb3b8}
+  [data-theme="light"] .stream-tab:hover{background:#ffe0e3}
+  [data-theme="light"] .stream-tab.active{background:#fff;border-bottom:2px solid #cc1122;background:#fff0f1}
+  [data-theme="light"] .stream-tab .stab-label{color:#cc1122}
+  [data-theme="light"] .stream-tab .stab-sub{color:#aa3344}
+  [data-theme="light"] .stream-tabs{border-color:#ffb3b8}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{background:var(--black);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
@@ -1119,27 +1123,41 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
     </button>
   </div>
 
-  <!-- BROADCASTIFY PANEL -->
-  <div class="stream-panel" id="panel-broadcastify">
+  <div class="stream-panel" id="panel-sdr">
     <div class="stream-panel-header">
-      <span class="stream-panel-title">Broadcastify — Capitale-Nationale (ctid/5207)</span>
+      <span class="stream-panel-title" data-en="ProScan — Web Server Player" data-fr="ProScan — Lecteur Web Serveur">ProScan — Lecteur Web Serveur</span>
       <div class="stream-panel-actions">
-        <span class="stream-note" data-en="⚠ Select a feed then choose Web Player to start audio" data-fr="⚠ Sélectionnez un flux puis choisissez Lecteur Web">⚠ Select a feed then choose Web Player to start audio</span>
-        <a href="https://www.broadcastify.com/listen/ctid/5207" target="_blank" class="stream-ext-link">Open full page ↗</a>
+        <span class="stream-note" style="color:var(--green)" data-en="● Enter your ProScan Web Server URL below" data-fr="● Entrez l'URL de votre serveur Web ProScan ci-dessous">● Entrez l'URL de votre serveur Web ProScan ci-dessous</span>
       </div>
     </div>
-    <div class="stream-frame-wrap">
-      <iframe id="iframe-broadcastify"
-        src="https://www.broadcastify.com/listen/ctid/5207"
-        title="Broadcastify Capitale-Nationale"
-        allow="autoplay"
-        referrerpolicy="no-referrer-when-downgrade"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation">
-      </iframe>
+
+    <!-- URL input bar -->
+    <div class="proscan-url-bar">
+      <span class="proscan-url-prefix">http://</span>
+      <input type="text" id="proscanUrlInput" class="proscan-url-input"
+             placeholder="192.168.1.x:8080  ou  monserveur.ddns.net:8080"
+             autocomplete="off" spellcheck="false">
+      <button class="proscan-url-go" onclick="loadProscan()" data-en="▶ CONNECT" data-fr="▶ CONNECTER">▶ CONNECTER</button>
+      <button class="proscan-url-clear" onclick="clearProscan()" title="Clear">✕</button>
+    </div>
+
+    <!-- iframe player area -->
+    <div class="proscan-frame-wrap" id="proscanWrap">
+      <div class="proscan-placeholder" id="proscanPlaceholder">
+        <div class="proscan-ph-icon">🖥️</div>
+        <div class="proscan-ph-title" data-en="ProScan Web Server" data-fr="Serveur Web ProScan">Serveur Web ProScan</div>
+        <div class="proscan-ph-desc" data-en="Enter the IP address and port of your ProScan Web Server above, then click Connect." data-fr="Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.">Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.</div>
+        <div class="proscan-ph-steps">
+          <div class="proscan-ph-step"><span class="proscan-step-n">1</span><span data-en="In ProScan, enable Web Server under Scanner menu" data-fr="Dans ProScan, activez le serveur Web sous le menu Scanner">Dans ProScan, activez le serveur Web sous le menu Scanner</span></div>
+          <div class="proscan-ph-step"><span class="proscan-step-n">2</span><span data-en="Note the IP and port shown in ProScan (default 8080)" data-fr="Notez l'IP et le port affichés dans ProScan (défaut 8080)">Notez l'IP et le port affichés dans ProScan (défaut 8080)</span></div>
+          <div class="proscan-ph-step"><span class="proscan-step-n">3</span><span data-en="Enter it above and click Connect — the ProScan player will load here" data-fr="Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici">Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici</span></div>
+        </div>
+        <a href="https://www.proscan.org" target="_blank" rel="noopener" class="proscan-ph-link">↗ proscan.org</a>
+      </div>
+      <iframe id="proscanFrame" class="proscan-frame hidden" src="" allow="autoplay" allowfullscreen></iframe>
     </div>
   </div>
 
-  <!-- LIVEATC PANEL -->
   <div class="stream-panel hidden" id="panel-liveatc">
     <div class="stream-panel-header">
       <span class="stream-panel-title">LiveATC — CYQB (Québec Jean-Lesage)</span>
@@ -1218,41 +1236,35 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
     </div>
   </div>
 
-    <!-- RTL-SDR PANEL -->
-  <div class="stream-panel hidden" id="panel-sdr">
+  <div class="stream-panel hidden" id="panel-broadcastify">
     <div class="stream-panel-header">
-      <span class="stream-panel-title" data-en="ProScan — Web Server Player" data-fr="ProScan — Lecteur Web Serveur">ProScan — Lecteur Web Serveur</span>
+      <span class="stream-panel-title">Broadcastify — Capitale-Nationale (ctid/5207)</span>
       <div class="stream-panel-actions">
-        <span class="stream-note" style="color:var(--green)" data-en="● Enter your ProScan Web Server URL below" data-fr="● Entrez l'URL de votre serveur Web ProScan ci-dessous">● Entrez l'URL de votre serveur Web ProScan ci-dessous</span>
+        <span class="stream-note" data-en="⚠ Select a feed then choose Web Player to start audio" data-fr="⚠ Sélectionnez un flux puis choisissez Lecteur Web">⚠ Select a feed then choose Web Player to start audio</span>
+        <a href="https://www.broadcastify.com/listen/ctid/5207" target="_blank" class="stream-ext-link">Open full page ↗</a>
       </div>
     </div>
-
-    <!-- URL input bar -->
-    <div class="proscan-url-bar">
-      <span class="proscan-url-prefix">http://</span>
-      <input type="text" id="proscanUrlInput" class="proscan-url-input"
-             placeholder="192.168.1.x:8080  ou  monserveur.ddns.net:8080"
-             autocomplete="off" spellcheck="false">
-      <button class="proscan-url-go" onclick="loadProscan()" data-en="▶ CONNECT" data-fr="▶ CONNECTER">▶ CONNECTER</button>
-      <button class="proscan-url-clear" onclick="clearProscan()" title="Clear">✕</button>
-    </div>
-
-    <!-- iframe player area -->
-    <div class="proscan-frame-wrap" id="proscanWrap">
-      <div class="proscan-placeholder" id="proscanPlaceholder">
-        <div class="proscan-ph-icon">🖥️</div>
-        <div class="proscan-ph-title" data-en="ProScan Web Server" data-fr="Serveur Web ProScan">Serveur Web ProScan</div>
-        <div class="proscan-ph-desc" data-en="Enter the IP address and port of your ProScan Web Server above, then click Connect." data-fr="Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.">Entrez l'adresse IP et le port de votre serveur Web ProScan ci-dessus, puis cliquez sur Connecter.</div>
-        <div class="proscan-ph-steps">
-          <div class="proscan-ph-step"><span class="proscan-step-n">1</span><span data-en="In ProScan, enable Web Server under Scanner menu" data-fr="Dans ProScan, activez le serveur Web sous le menu Scanner">Dans ProScan, activez le serveur Web sous le menu Scanner</span></div>
-          <div class="proscan-ph-step"><span class="proscan-step-n">2</span><span data-en="Note the IP and port shown in ProScan (default 8080)" data-fr="Notez l'IP et le port affichés dans ProScan (défaut 8080)">Notez l'IP et le port affichés dans ProScan (défaut 8080)</span></div>
-          <div class="proscan-ph-step"><span class="proscan-step-n">3</span><span data-en="Enter it above and click Connect — the ProScan player will load here" data-fr="Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici">Entrez-le ci-dessus et cliquez sur Connecter — le lecteur ProScan se charge ici</span></div>
-        </div>
-        <a href="https://www.proscan.org" target="_blank" rel="noopener" class="proscan-ph-link">↗ proscan.org</a>
-      </div>
-      <iframe id="proscanFrame" class="proscan-frame hidden" src="" allow="autoplay" allowfullscreen></iframe>
+    <div class="stream-frame-wrap">
+      <iframe id="iframe-broadcastify"
+        src="https://www.broadcastify.com/listen/ctid/5207"
+        title="Broadcastify Capitale-Nationale"
+        allow="autoplay"
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation">
+      </iframe>
     </div>
   </div>
+
+  
+
+  <!-- BROADCASTIFY PANEL -->
+  
+
+  <!-- LIVEATC PANEL -->
+  
+
+    <!-- RTL-SDR PANEL -->
+  
 </section>
 </div>
 
