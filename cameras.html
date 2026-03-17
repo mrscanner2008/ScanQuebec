@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caméras MTQ — ScanQC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#080c0a;--deep:#0a1210;--panel:#0f1a16;--card:#121f1a;--border:#1e3028;
+    --green:#00ff88;--green-dim:#00c866;--green-faint:rgba(0,255,136,0.07);
+    --amber:#ffaa00;--red:#ff3344;
+    --text:#c8ddd5;--text-dim:#6a8a7a;
+    --mono:'Share Tech Mono',monospace;--cond:'Barlow Condensed',sans-serif;
+  }
+  [data-theme="light"]{
+    --black:#ffffff;--deep:#f5f7f6;--panel:#eef2f0;--card:#e8edeb;--border:#c8d8d2;
+    --green:#00994d;--green-dim:#007a3d;--green-faint:rgba(0,153,77,0.09);
+    --amber:#b37400;--red:#cc1122;--text:#111c17;--text-dim:#3d5c4e;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--black);color:var(--text);font-family:var(--cond)}
+
+  .toolbar{position:sticky;top:0;z-index:100;background:rgba(8,12,10,0.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0.4rem 0.7rem;display:flex;align-items:center;flex-wrap:wrap;gap:3px}
+  [data-theme="light"] .toolbar{background:rgba(255,255,255,0.97)}
+  .fbtn{font-family:var(--mono);font-size:0.57rem;letter-spacing:0.09em;text-transform:uppercase;padding:0.22rem 0.55rem;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:all 0.14s;white-space:nowrap}
+  .fbtn:hover{color:var(--green);border-color:rgba(0,255,136,0.3)}
+  .fbtn.active{background:var(--green-faint);color:var(--green);border-color:rgba(0,255,136,0.4)}
+  .toolbar-right{margin-left:auto;display:flex;align-items:center;gap:0.5rem;flex-shrink:0}
+  .rbtn{font-family:var(--mono);font-size:0.57rem;padding:0.22rem 0.65rem;background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:all 0.14s}
+  .rbtn:hover{color:var(--green);border-color:var(--green)}
+
+  .status{padding:0.28rem 0.7rem;background:var(--deep);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.57rem;color:var(--text-dim);display:flex;align-items:center;gap:0.5rem}
+  .sdot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green);flex-shrink:0;animation:blink 1.8s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  .cam-table{width:100%;border-collapse:collapse}
+  .sec-hdr{font-family:var(--cond);font-size:0.85rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--green);background:var(--deep);border-bottom:1px solid var(--border);padding:0.55rem 0.8rem}
+  .sec-count{font-weight:400;opacity:0.4;font-size:0.68rem}
+
+  .cam-cell{background:var(--card);border:1px solid var(--border);padding:0.4rem;vertical-align:top;width:20%;cursor:pointer;transition:background 0.14s}
+  .cam-cell:hover{background:#161f1b}
+  [data-theme="light"] .cam-cell{background:#fff}
+  [data-theme="light"] .cam-cell:hover{background:#f0f7f4}
+  .cam-empty{background:var(--deep);cursor:default}
+  [data-theme="light"] .cam-empty{background:#f5f7f6}
+  .cam-label{font-family:var(--mono);font-size:0.54rem;color:var(--text-dim);margin-bottom:0.3rem;line-height:1.3}
+  .cam-id{color:rgba(106,138,122,0.4);font-size:0.48rem}
+  .cam-vid{width:100%;aspect-ratio:16/9;display:block;background:#000}
+
+  .back-top{text-align:center;padding:1.2rem;font-family:var(--mono);font-size:0.65rem}
+  .back-top a{color:var(--green);text-decoration:none;border:1px solid rgba(0,255,136,0.3);padding:0.35rem 1rem}
+  .back-top a:hover{background:var(--green-faint)}
+
+  .modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+  .modal-bg.open{opacity:1;pointer-events:all}
+  .modal{background:var(--panel);border:1px solid var(--border);max-width:860px;width:100%;transform:translateY(8px);transition:transform 0.22s}
+  .modal-bg.open .modal{transform:none}
+  [data-theme="light"] .modal{background:#fff}
+  .mhdr{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.9rem;border-bottom:1px solid var(--border);background:var(--card)}
+  [data-theme="light"] .mhdr{background:#f5f7f6}
+  .mhdr-title{font-family:var(--cond);font-size:0.95rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#fff}
+  [data-theme="light"] .mhdr-title{color:#111}
+  .mclose{background:none;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:0.2rem 0.5rem;font-family:var(--mono)}
+  .mclose:hover{color:var(--red)}
+  .mvid-full{width:100%;aspect-ratio:16/9;background:#000;display:block}
+  .mmeta{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:1px;background:var(--border);font-family:var(--mono);font-size:0.63rem}
+  .mmeta div{background:var(--card);padding:0.4rem 0.7rem;display:flex;flex-direction:column;gap:0.1rem}
+  [data-theme="light"] .mmeta div{background:#f5f7f6}
+  .mmeta label{font-size:0.5rem;letter-spacing:0.12em;color:var(--text-dim);text-transform:uppercase}
+</style>
+</head>
+<body id="TOP">
+
+<div class="toolbar">
+  <button class="fbtn active" onclick="scrollTop(this)">▲ Tout</button>
+  <button class="fbtn" onclick="jumpTo('qc-a40',this)">A-40</button>
+  <button class="fbtn" onclick="jumpTo('qc-a73',this)">A-73</button>
+  <button class="fbtn" onclick="jumpTo('qc-a440',this)">A-440</button>
+  <button class="fbtn" onclick="jumpTo('qc-a540',this)">A-540</button>
+  <button class="fbtn" onclick="jumpTo('qc-a573',this)">A-573</button>
+  <button class="fbtn" onclick="jumpTo('qc-a740',this)">A-740</button>
+  <button class="fbtn" onclick="jumpTo('qc-r138',this)">R-138 QC</button>
+  <button class="fbtn" onclick="jumpTo('montreal',this)">Montréal</button>
+  <button class="fbtn" onclick="jumpTo('laval',this)">Laval</button>
+  <button class="fbtn" onclick="jumpTo('rive-sud',this)">Rive-Sud</button>
+  <button class="fbtn" onclick="jumpTo('hull',this)">Hull/Gatineau</button>
+  <button class="fbtn" onclick="jumpTo('laurentides',this)">Laurentides</button>
+  <button class="fbtn" onclick="jumpTo('saguenay',this)">Saguenay</button>
+  <button class="fbtn" onclick="jumpTo('route138',this)">R-138</button>
+  <div class="toolbar-right">
+    <span style="font-family:var(--mono);font-size:0.55rem;color:var(--text-dim)">184 cam</span>
+    <button class="rbtn" onclick="doRefresh()">↻</button>
+  </div>
+</div>
+
+<div class="status">
+  <div class="sdot"></div>
+  <span id="stmsg">184 caméras · Transports Québec · Refresh auto 5 min</span>
+  <a href="#TOP" style="margin-left:auto;font-family:var(--mono);font-size:0.55rem;color:var(--green-dim);text-decoration:none">↑ Haut</a>
+</div>
+
+<table class="cam-table">
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a40">Québec — Autoroute 40 <span class="sec-count">(41)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3968,'A-40 (dir. est) / route 138')" title="A-40 (dir. est) / route 138 (#3968)">
+    <div class="cam-label">A-40 (dir. est) / route 138 <span class="cam-id">(#3968)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3968" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3967,'A-40 (dir. ouest) / route 138')" title="A-40 (dir. ouest) / route 138 (#3967)">
+    <div class="cam-label">A-40 (dir. ouest) / route 138 <span class="cam-id">(#3967)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3967" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3966,'A-40 (dir. est) / boul. des Chutes')" title="A-40 (dir. est) / boul. des Chutes (#3966)">
+    <div class="cam-label">A-40 (dir. est) / boul. des Chutes <span class="cam-id">(#3966)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3966" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3965,'A-40 (dir. ouest) / boul. des Chutes')" title="A-40 (dir. ouest) / boul. des Chutes (#3965)">
+    <div class="cam-label">A-40 (dir. ouest) / boul. des Chutes <span class="cam-id">(#3965)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3965" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3551,'A-40 / route de Fossambault')" title="A-40 / route de Fossambault (#3551)">
+    <div class="cam-label">A-40 / route de Fossambault <span class="cam-id">(#3551)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3551" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3792,'A-40 (dir. ouest) à l\'est de la route 138')" title="A-40 (dir. ouest) à l'est de la route 138 (#3792)">
+    <div class="cam-label">A-40 (dir. ouest) à l'est de la route 138 <span class="cam-id">(#3792)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3792" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3502,'A-40 (dir. est) à l\'est de la route 138')" title="A-40 (dir. est) à l'est de la route 138 (#3502)">
+    <div class="cam-label">A-40 (dir. est) à l'est de la route 138 <span class="cam-id">(#3502)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3502" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3552,'A-40 (dir. ouest) / ch. du Lac')" title="A-40 (dir. ouest) / ch. du Lac (#3552)">
+    <div class="cam-label">A-40 (dir. ouest) / ch. du Lac <span class="cam-id">(#3552)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3552" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3553,'A-40 (dir. est) / ch. du Lac')" title="A-40 (dir. est) / ch. du Lac (#3553)">
+    <div class="cam-label">A-40 (dir. est) / ch. du Lac <span class="cam-id">(#3553)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3553" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3604,'A-40 (dir. ouest) / ch. Jean-Gauvin')" title="A-40 (dir. ouest) / ch. Jean-Gauvin (#3604)">
+    <div class="cam-label">A-40 (dir. ouest) / ch. Jean-Gauvin <span class="cam-id">(#3604)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3604" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3480,'A-40 (dir. est) / ch. Jean-Gauvin')" title="A-40 (dir. est) / ch. Jean-Gauvin (#3480)">
+    <div class="cam-label">A-40 (dir. est) / ch. Jean-Gauvin <span class="cam-id">(#3480)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3480" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3481,'A-40 (dir. ouest) / av. Le Gendre')" title="A-40 (dir. ouest) / av. Le Gendre (#3481)">
+    <div class="cam-label">A-40 (dir. ouest) / av. Le Gendre <span class="cam-id">(#3481)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3481" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3844,'A-40 (dir. est) / av. Le Gendre')" title="A-40 (dir. est) / av. Le Gendre (#3844)">
+    <div class="cam-label">A-40 (dir. est) / av. Le Gendre <span class="cam-id">(#3844)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3844" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3848,'A-40 (dir. ouest) / aut. 540')" title="A-40 (dir. ouest) / aut. 540 (#3848)">
+    <div class="cam-label">A-40 (dir. ouest) / aut. 540 <span class="cam-id">(#3848)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3848" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3849,'A-40 (dir. est) / aut. 540')" title="A-40 (dir. est) / aut. 540 (#3849)">
+    <div class="cam-label">A-40 (dir. est) / aut. 540 <span class="cam-id">(#3849)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3849" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3573,'A-40 (dir. ouest) / av. Blaise-Pascal')" title="A-40 (dir. ouest) / av. Blaise-Pascal (#3573)">
+    <div class="cam-label">A-40 (dir. ouest) / av. Blaise-Pascal <span class="cam-id">(#3573)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3573" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3482,'A-40 (dir. est) / av. Blaise-Pascal')" title="A-40 (dir. est) / av. Blaise-Pascal (#3482)">
+    <div class="cam-label">A-40 (dir. est) / av. Blaise-Pascal <span class="cam-id">(#3482)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3482" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3614,'A-40 (dir. ouest) / aut. 73 (Henri-IV)')" title="A-40 (dir. ouest) / aut. 73 (Henri-IV) (#3614)">
+    <div class="cam-label">A-40 (dir. ouest) / aut. 73 (Henri-IV) <span class="cam-id">(#3614)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3614" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3485,'A-40 (dir. est) / aut. 73 (Henri-IV)')" title="A-40 (dir. est) / aut. 73 (Henri-IV) (#3485)">
+    <div class="cam-label">A-40 (dir. est) / aut. 73 (Henri-IV) <span class="cam-id">(#3485)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3485" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3486,'A-40 (dir. ouest) / boul. Saint-Jacques')" title="A-40 (dir. ouest) / boul. Saint-Jacques (#3486)">
+    <div class="cam-label">A-40 (dir. ouest) / boul. Saint-Jacques <span class="cam-id">(#3486)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3486" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3609,'A-40 (dir. est) / boul. Saint-Jacques')" title="A-40 (dir. est) / boul. Saint-Jacques (#3609)">
+    <div class="cam-label">A-40 (dir. est) / boul. Saint-Jacques <span class="cam-id">(#3609)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3609" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3487,'A-40 (dir. ouest) / aut. 740')" title="A-40 (dir. ouest) / aut. 740 (#3487)">
+    <div class="cam-label">A-40 (dir. ouest) / aut. 740 <span class="cam-id">(#3487)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3487" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3488,'A-40 (dir. est) / aut. 740')" title="A-40 (dir. est) / aut. 740 (#3488)">
+    <div class="cam-label">A-40 (dir. est) / aut. 740 <span class="cam-id">(#3488)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3488" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3489,'A-40 (dir. ouest) / boul. Pierre-Bertrand')" title="A-40 (dir. ouest) / boul. Pierre-Bertrand (#3489)">
+    <div class="cam-label">A-40 (dir. ouest) / boul. Pierre-Bertrand <span class="cam-id">(#3489)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3489" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3490,'A-40 (dir. est) / boul. Pierre-Bertrand')" title="A-40 (dir. est) / boul. Pierre-Bertrand (#3490)">
+    <div class="cam-label">A-40 (dir. est) / boul. Pierre-Bertrand <span class="cam-id">(#3490)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3490" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3491,'A-40 (dir. ouest) / aut. 73 (Laurentienne)')" title="A-40 (dir. ouest) / aut. 73 (Laurentienne) (#3491)">
+    <div class="cam-label">A-40 (dir. ouest) / aut. 73 (Laurentienne) <span class="cam-id">(#3491)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3491" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3492,'A-40 (dir. est) / aut. 73 (Laurentienne)')" title="A-40 (dir. est) / aut. 73 (Laurentienne) (#3492)">
+    <div class="cam-label">A-40 (dir. est) / aut. 73 (Laurentienne) <span class="cam-id">(#3492)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3492" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3523,'A-40 (dir. ouest) / 1re Avenue')" title="A-40 (dir. ouest) / 1re Avenue (#3523)">
+    <div class="cam-label">A-40 (dir. ouest) / 1re Avenue <span class="cam-id">(#3523)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3523" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3524,'A-40 (dir. est) / 1re Avenue')" title="A-40 (dir. est) / 1re Avenue (#3524)">
+    <div class="cam-label">A-40 (dir. est) / 1re Avenue <span class="cam-id">(#3524)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3524" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3554,'A-40 (dir. ouest) / boul. Henri-Bourassa')" title="A-40 (dir. ouest) / boul. Henri-Bourassa (#3554)">
+    <div class="cam-label">A-40 (dir. ouest) / boul. Henri-Bourassa <span class="cam-id">(#3554)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3554" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3555,'A-40 (dir. est) / boul. Henri-Bourassa')" title="A-40 (dir. est) / boul. Henri-Bourassa (#3555)">
+    <div class="cam-label">A-40 (dir. est) / boul. Henri-Bourassa <span class="cam-id">(#3555)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3555" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3525,'A-40 (dir. ouest) / av. D\'Estimauville')" title="A-40 (dir. ouest) / av. D'Estimauville (#3525)">
+    <div class="cam-label">A-40 (dir. ouest) / av. D'Estimauville <span class="cam-id">(#3525)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3525" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3526,'A-40 (dir. est) / av. D\'Estimauville')" title="A-40 (dir. est) / av. D'Estimauville (#3526)">
+    <div class="cam-label">A-40 (dir. est) / av. D'Estimauville <span class="cam-id">(#3526)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3526" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3556,'A-40 (dir. ouest) / av. Saint-David')" title="A-40 (dir. ouest) / av. Saint-David (#3556)">
+    <div class="cam-label">A-40 (dir. ouest) / av. Saint-David <span class="cam-id">(#3556)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3556" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3557,'A-40 (dir. est) / av. Saint-David')" title="A-40 (dir. est) / av. Saint-David (#3557)">
+    <div class="cam-label">A-40 (dir. est) / av. Saint-David <span class="cam-id">(#3557)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3557" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3558,'A-40 (dir. ouest) / rue Seigneuriale')" title="A-40 (dir. ouest) / rue Seigneuriale (#3558)">
+    <div class="cam-label">A-40 (dir. ouest) / rue Seigneuriale <span class="cam-id">(#3558)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3558" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3559,'A-40 (dir. est) / rue Seigneuriale')" title="A-40 (dir. est) / rue Seigneuriale (#3559)">
+    <div class="cam-label">A-40 (dir. est) / rue Seigneuriale <span class="cam-id">(#3559)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3559" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3560,'A-40 (dir. ouest) / rue Labelle')" title="A-40 (dir. ouest) / rue Labelle (#3560)">
+    <div class="cam-label">A-40 (dir. ouest) / rue Labelle <span class="cam-id">(#3560)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3560" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3561,'A-40 (dir. est) / rue Labelle')" title="A-40 (dir. est) / rue Labelle (#3561)">
+    <div class="cam-label">A-40 (dir. est) / rue Labelle <span class="cam-id">(#3561)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3561" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3508,'A-40 (dir. ouest) / aut. 440')" title="A-40 (dir. ouest) / aut. 440 (#3508)">
+    <div class="cam-label">A-40 (dir. ouest) / aut. 440 <span class="cam-id">(#3508)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3508" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3605,'A-440 (dir. ouest) / pont de l\'Île-d\'Orléans')" title="A-440 (dir. ouest) / pont de l'Île-d'Orléans (#3605)">
+    <div class="cam-label">A-440 (dir. ouest) / pont de l'Île-d'Orléans <span class="cam-id">(#3605)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3605" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a73">Québec — Autoroute 73 <span class="sec-count">(39)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3976,'A-73 (dir. sud) / Stoneham')" title="A-73 (dir. sud) / Stoneham (#3976)">
+    <div class="cam-label">A-73 (dir. sud) / Stoneham <span class="cam-id">(#3976)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3976" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3975,'A-73 (dir. sud) / rue Jacques-Bédard')" title="A-73 (dir. sud) / rue Jacques-Bédard (#3975)">
+    <div class="cam-label">A-73 (dir. sud) / rue Jacques-Bédard <span class="cam-id">(#3975)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3975" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3455,'A-73 sur le pont Pierre-Laporte')" title="A-73 sur le pont Pierre-Laporte (#3455)">
+    <div class="cam-label">A-73 sur le pont Pierre-Laporte <span class="cam-id">(#3455)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3455" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3454,'A-73 (dir. sud) / pont Pierre-Laporte')" title="A-73 (dir. sud) / pont Pierre-Laporte (#3454)">
+    <div class="cam-label">A-73 (dir. sud) / pont Pierre-Laporte <span class="cam-id">(#3454)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3454" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3603,'A-73 (dir. nord) / pont Pierre-Laporte')" title="A-73 (dir. nord) / pont Pierre-Laporte (#3603)">
+    <div class="cam-label">A-73 (dir. nord) / pont Pierre-Laporte <span class="cam-id">(#3603)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3603" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3469,'A-73 (dir. sud) / aut. 540')" title="A-73 (dir. sud) / aut. 540 (#3469)">
+    <div class="cam-label">A-73 (dir. sud) / aut. 540 <span class="cam-id">(#3469)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3469" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3470,'A-73 (dir. nord) / aut. 540')" title="A-73 (dir. nord) / aut. 540 (#3470)">
+    <div class="cam-label">A-73 (dir. nord) / aut. 540 <span class="cam-id">(#3470)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3470" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3471,'A-73 (dir. sud) / boul. Hochelaga')" title="A-73 (dir. sud) / boul. Hochelaga (#3471)">
+    <div class="cam-label">A-73 (dir. sud) / boul. Hochelaga <span class="cam-id">(#3471)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3471" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3611,'A-73 (dir. nord) / boul. Hochelaga')" title="A-73 (dir. nord) / boul. Hochelaga (#3611)">
+    <div class="cam-label">A-73 (dir. nord) / boul. Hochelaga <span class="cam-id">(#3611)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3611" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3472,'A-73 (dir. sud) / ch. des Quatre-Bourgeois')" title="A-73 (dir. sud) / ch. des Quatre-Bourgeois (#3472)">
+    <div class="cam-label">A-73 (dir. sud) / ch. des Quatre-Bourgeois <span class="cam-id">(#3472)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3472" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3846,'A-73 (dir. nord) / ch. des Quatre-Bourgeois')" title="A-73 (dir. nord) / ch. des Quatre-Bourgeois (#3846)">
+    <div class="cam-label">A-73 (dir. nord) / ch. des Quatre-Bourgeois <span class="cam-id">(#3846)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3846" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3473,'A-73 (dir. sud) sortie 138 / ch. Sainte-Foy')" title="A-73 (dir. sud) sortie 138 / ch. Sainte-Foy (#3473)">
+    <div class="cam-label">A-73 (dir. sud) sortie 138 / ch. Sainte-Foy <span class="cam-id">(#3473)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3473" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3610,'A-73 (dir. nord) sortie 138 / ch. Sainte-Foy')" title="A-73 (dir. nord) sortie 138 / ch. Sainte-Foy (#3610)">
+    <div class="cam-label">A-73 (dir. nord) sortie 138 / ch. Sainte-Foy <span class="cam-id">(#3610)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3610" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3970,'A-73 (dir. sud) / ch. Sainte-Foy')" title="A-73 (dir. sud) / ch. Sainte-Foy (#3970)">
+    <div class="cam-label">A-73 (dir. sud) / ch. Sainte-Foy <span class="cam-id">(#3970)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3970" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3474,'A-73 Henri-IV (dir. sud) / aut. 440')" title="A-73 Henri-IV (dir. sud) / aut. 440 (#3474)">
+    <div class="cam-label">A-73 Henri-IV (dir. sud) / aut. 440 <span class="cam-id">(#3474)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3474" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3475,'A-73 Henri-IV (dir. nord) / aut. 440')" title="A-73 Henri-IV (dir. nord) / aut. 440 (#3475)">
+    <div class="cam-label">A-73 Henri-IV (dir. nord) / aut. 440 <span class="cam-id">(#3475)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3475" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3476,'A-73 (dir. sud) / rue John-Molson')" title="A-73 (dir. sud) / rue John-Molson (#3476)">
+    <div class="cam-label">A-73 (dir. sud) / rue John-Molson <span class="cam-id">(#3476)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3476" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3847,'A-73 (dir. nord) / rue John-Molson')" title="A-73 (dir. nord) / rue John-Molson (#3847)">
+    <div class="cam-label">A-73 (dir. nord) / rue John-Molson <span class="cam-id">(#3847)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3847" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3713,'A-73 (dir. sud) / boul. Wilfrid-Hamel')" title="A-73 (dir. sud) / boul. Wilfrid-Hamel (#3713)">
+    <div class="cam-label">A-73 (dir. sud) / boul. Wilfrid-Hamel <span class="cam-id">(#3713)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3713" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3712,'A-73 (dir. nord) / boul. Wilfrid-Hamel')" title="A-73 (dir. nord) / boul. Wilfrid-Hamel (#3712)">
+    <div class="cam-label">A-73 (dir. nord) / boul. Wilfrid-Hamel <span class="cam-id">(#3712)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3712" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3477,'A-73 (dir. sud) nord du boul. Wilfrid-Hamel')" title="A-73 (dir. sud) nord du boul. Wilfrid-Hamel (#3477)">
+    <div class="cam-label">A-73 (dir. sud) nord du boul. Wilfrid-Hamel <span class="cam-id">(#3477)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3477" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3564,'A-73 (dir. nord) nord du boul. Wilfrid-Hamel')" title="A-73 (dir. nord) nord du boul. Wilfrid-Hamel (#3564)">
+    <div class="cam-label">A-73 (dir. nord) nord du boul. Wilfrid-Hamel <span class="cam-id">(#3564)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3564" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3898,'A-73 (dir. sud) / aut. 40 et aut. 573')" title="A-73 (dir. sud) / aut. 40 et aut. 573 (#3898)">
+    <div class="cam-label">A-73 (dir. sud) / aut. 40 et aut. 573 <span class="cam-id">(#3898)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3898" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3897,'A-73 (dir. nord) / aut. 40 et aut. 573')" title="A-73 (dir. nord) / aut. 40 et aut. 573 (#3897)">
+    <div class="cam-label">A-73 (dir. nord) / aut. 40 et aut. 573 <span class="cam-id">(#3897)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3897" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3484,'A-73 Henri-IV (dir. sud) / aut. 40')" title="A-73 Henri-IV (dir. sud) / aut. 40 (#3484)">
+    <div class="cam-label">A-73 Henri-IV (dir. sud) / aut. 40 <span class="cam-id">(#3484)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3484" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3579,'A-73 Laurentienne (dir. nord) / aut. 40')" title="A-73 Laurentienne (dir. nord) / aut. 40 (#3579)">
+    <div class="cam-label">A-73 Laurentienne (dir. nord) / aut. 40 <span class="cam-id">(#3579)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3579" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3493,'A-73 (dir. sud) / boul. Lebourgneuf')" title="A-73 (dir. sud) / boul. Lebourgneuf (#3493)">
+    <div class="cam-label">A-73 (dir. sud) / boul. Lebourgneuf <span class="cam-id">(#3493)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3493" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3608,'A-73 (dir. nord) / boul. Lebourgneuf')" title="A-73 (dir. nord) / boul. Lebourgneuf (#3608)">
+    <div class="cam-label">A-73 (dir. nord) / boul. Lebourgneuf <span class="cam-id">(#3608)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3608" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3911,'A-73 (dir. nord) / boul. Louis-XIV')" title="A-73 (dir. nord) / boul. Louis-XIV (#3911)">
+    <div class="cam-label">A-73 (dir. nord) / boul. Louis-XIV <span class="cam-id">(#3911)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3911" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3494,'A-73 (dir. sud) / boul. Louis-XIV')" title="A-73 (dir. sud) / boul. Louis-XIV (#3494)">
+    <div class="cam-label">A-73 (dir. sud) / boul. Louis-XIV <span class="cam-id">(#3494)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3494" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3607,'A-73 (dir. sud) / boul. Jean-Talon')" title="A-73 (dir. sud) / boul. Jean-Talon (#3607)">
+    <div class="cam-label">A-73 (dir. sud) / boul. Jean-Talon <span class="cam-id">(#3607)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3607" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3495,'A-73 (dir. nord) / boul. Jean-Talon')" title="A-73 (dir. nord) / boul. Jean-Talon (#3495)">
+    <div class="cam-label">A-73 (dir. nord) / boul. Jean-Talon <span class="cam-id">(#3495)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3495" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3912,'A-73 (dir. nord) / rue de la Faune')" title="A-73 (dir. nord) / rue de la Faune (#3912)">
+    <div class="cam-label">A-73 (dir. nord) / rue de la Faune <span class="cam-id">(#3912)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3912" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3622,'A-73 (dir. sud) / rue de la Faune')" title="A-73 (dir. sud) / rue de la Faune (#3622)">
+    <div class="cam-label">A-73 (dir. sud) / rue de la Faune <span class="cam-id">(#3622)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3622" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3621,'A-73 (dir. nord) / rue de la Faune (2)')" title="A-73 (dir. nord) / rue de la Faune (2) (#3621)">
+    <div class="cam-label">A-73 (dir. nord) / rue de la Faune (2) <span class="cam-id">(#3621)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3621" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3913,'A-73 (dir. sud) / rue George-Muir')" title="A-73 (dir. sud) / rue George-Muir (#3913)">
+    <div class="cam-label">A-73 (dir. sud) / rue George-Muir <span class="cam-id">(#3913)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3913" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3623,'A-73 (dir. nord) / rue George-Muir')" title="A-73 (dir. nord) / rue George-Muir (#3623)">
+    <div class="cam-label">A-73 (dir. nord) / rue George-Muir <span class="cam-id">(#3623)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3623" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3624,'A-73 nord de la rue George-Muir')" title="A-73 nord de la rue George-Muir (#3624)">
+    <div class="cam-label">A-73 nord de la rue George-Muir <span class="cam-id">(#3624)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3624" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3505,'A-73 sortie 157 (Lac-Beauport)')" title="A-73 sortie 157 (Lac-Beauport) (#3505)">
+    <div class="cam-label">A-73 sortie 157 (Lac-Beauport) <span class="cam-id">(#3505)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3505" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a440">Québec — Autoroute 440 <span class="sec-count">(22)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3909,'A-440 / rue Frank-Carrel')" title="A-440 / rue Frank-Carrel (#3909)">
+    <div class="cam-label">A-440 / rue Frank-Carrel <span class="cam-id">(#3909)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3909" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3515,'A-440 (dir. ouest) / aut. 73 (Henri-IV)')" title="A-440 (dir. ouest) / aut. 73 (Henri-IV) (#3515)">
+    <div class="cam-label">A-440 (dir. ouest) / aut. 73 (Henri-IV) <span class="cam-id">(#3515)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3515" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3516,'A-440 (dir. est) / aut. 73 (Henri-IV)')" title="A-440 (dir. est) / aut. 73 (Henri-IV) (#3516)">
+    <div class="cam-label">A-440 (dir. est) / aut. 73 (Henri-IV) <span class="cam-id">(#3516)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3516" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3503,'A-440 (dir. ouest) / aut. 740')" title="A-440 (dir. ouest) / aut. 740 (#3503)">
+    <div class="cam-label">A-440 (dir. ouest) / aut. 740 <span class="cam-id">(#3503)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3503" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3845,'A-440 (dir. est) / aut. 740')" title="A-440 (dir. est) / aut. 740 (#3845)">
+    <div class="cam-label">A-440 (dir. est) / aut. 740 <span class="cam-id">(#3845)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3845" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3520,'A-440 (dir. ouest) / boul. du Versant-Nord')" title="A-440 (dir. ouest) / boul. du Versant-Nord (#3520)">
+    <div class="cam-label">A-440 (dir. ouest) / boul. du Versant-Nord <span class="cam-id">(#3520)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3520" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3627,'A-440 (dir. est) / boul. du Versant-Nord')" title="A-440 (dir. est) / boul. du Versant-Nord (#3627)">
+    <div class="cam-label">A-440 (dir. est) / boul. du Versant-Nord <span class="cam-id">(#3627)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3627" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3521,'A-440 ouest de l\'av. Saint-Sacrement')" title="A-440 ouest de l'av. Saint-Sacrement (#3521)">
+    <div class="cam-label">A-440 ouest de l'av. Saint-Sacrement <span class="cam-id">(#3521)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3521" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3796,'A-440 (dir. ouest) / av. Honoré-Mercier')" title="A-440 (dir. ouest) / av. Honoré-Mercier (#3796)">
+    <div class="cam-label">A-440 (dir. ouest) / av. Honoré-Mercier <span class="cam-id">(#3796)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3796" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3797,'A-440 (dir. ouest) / rivière Saint-Charles')" title="A-440 (dir. ouest) / rivière Saint-Charles (#3797)">
+    <div class="cam-label">A-440 (dir. ouest) / rivière Saint-Charles <span class="cam-id">(#3797)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3797" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3795,'A-440 (dir. est) / rivière Saint-Charles')" title="A-440 (dir. est) / rivière Saint-Charles (#3795)">
+    <div class="cam-label">A-440 (dir. est) / rivière Saint-Charles <span class="cam-id">(#3795)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3795" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3708,'A-440 (dir. ouest) / boul. Henri-Bourassa')" title="A-440 (dir. ouest) / boul. Henri-Bourassa (#3708)">
+    <div class="cam-label">A-440 (dir. ouest) / boul. Henri-Bourassa <span class="cam-id">(#3708)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3708" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3709,'A-440 (dir. est) / boul. Henri-Bourassa')" title="A-440 (dir. est) / boul. Henri-Bourassa (#3709)">
+    <div class="cam-label">A-440 (dir. est) / boul. Henri-Bourassa <span class="cam-id">(#3709)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3709" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3711,'Boul. Henri-Bourassa (dir. sud) / aut. 440')" title="Boul. Henri-Bourassa (dir. sud) / aut. 440 (#3711)">
+    <div class="cam-label">Boul. Henri-Bourassa (dir. sud) / aut. 440 <span class="cam-id">(#3711)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3711" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3710,'Boul. Henri-Bourassa (dir. nord) / aut. 440')" title="Boul. Henri-Bourassa (dir. nord) / aut. 440 (#3710)">
+    <div class="cam-label">Boul. Henri-Bourassa (dir. nord) / aut. 440 <span class="cam-id">(#3710)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3710" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3511,'A-440 (dir. ouest) / av. D\'Estimauville')" title="A-440 (dir. ouest) / av. D'Estimauville (#3511)">
+    <div class="cam-label">A-440 (dir. ouest) / av. D'Estimauville <span class="cam-id">(#3511)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3511" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3703,'A-440 (dir. est) / av. D\'Estimauville')" title="A-440 (dir. est) / av. D'Estimauville (#3703)">
+    <div class="cam-label">A-440 (dir. est) / av. D'Estimauville <span class="cam-id">(#3703)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3703" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3704,'A-440 (dir. ouest) / boul. François-de-Laval')" title="A-440 (dir. ouest) / boul. François-de-Laval (#3704)">
+    <div class="cam-label">A-440 (dir. ouest) / boul. François-de-Laval <span class="cam-id">(#3704)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3704" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3705,'A-440 (dir. est) / boul. François-de-Laval')" title="A-440 (dir. est) / boul. François-de-Laval (#3705)">
+    <div class="cam-label">A-440 (dir. est) / boul. François-de-Laval <span class="cam-id">(#3705)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3705" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3706,'A-440 (dir. ouest) / boul. des Chutes')" title="A-440 (dir. ouest) / boul. des Chutes (#3706)">
+    <div class="cam-label">A-440 (dir. ouest) / boul. des Chutes <span class="cam-id">(#3706)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3706" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3707,'A-440 (dir. est) / boul. des Chutes')" title="A-440 (dir. est) / boul. des Chutes (#3707)">
+    <div class="cam-label">A-440 (dir. est) / boul. des Chutes <span class="cam-id">(#3707)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3707" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3606,'A-440 (dir. ouest) / aut. 40')" title="A-440 (dir. ouest) / aut. 40 (#3606)">
+    <div class="cam-label">A-440 (dir. ouest) / aut. 40 <span class="cam-id">(#3606)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3606" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a540">Québec — Autoroute 540 <span class="sec-count">(11)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3998,'A-540 (dir. ouest) / boul. Wilfrid-Hamel')" title="A-540 (dir. ouest) / boul. Wilfrid-Hamel (#3998)">
+    <div class="cam-label">A-540 (dir. ouest) / boul. Wilfrid-Hamel <span class="cam-id">(#3998)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3998" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3612,'A-540 (dir. sud) / aut. 73')" title="A-540 (dir. sud) / aut. 73 (#3612)">
+    <div class="cam-label">A-540 (dir. sud) / aut. 73 <span class="cam-id">(#3612)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3612" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3613,'A-540 (dir. nord) / aut. 73')" title="A-540 (dir. nord) / aut. 73 (#3613)">
+    <div class="cam-label">A-540 (dir. nord) / aut. 73 <span class="cam-id">(#3613)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3613" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3499,'A-540 (dir. sud) / boul. Hochelaga')" title="A-540 (dir. sud) / boul. Hochelaga (#3499)">
+    <div class="cam-label">A-540 (dir. sud) / boul. Hochelaga <span class="cam-id">(#3499)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3499" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3602,'A-540 (dir. nord) / boul. Hochelaga')" title="A-540 (dir. nord) / boul. Hochelaga (#3602)">
+    <div class="cam-label">A-540 (dir. nord) / boul. Hochelaga <span class="cam-id">(#3602)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3602" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3601,'A-540 (dir. sud) / ch. Sainte-Foy')" title="A-540 (dir. sud) / ch. Sainte-Foy (#3601)">
+    <div class="cam-label">A-540 (dir. sud) / ch. Sainte-Foy <span class="cam-id">(#3601)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3601" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3504,'A-540 (dir. nord) / ch. Sainte-Foy')" title="A-540 (dir. nord) / ch. Sainte-Foy (#3504)">
+    <div class="cam-label">A-540 (dir. nord) / ch. Sainte-Foy <span class="cam-id">(#3504)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3504" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3574,'A-540 (dir. sud) / boul. du Versant-Nord')" title="A-540 (dir. sud) / boul. du Versant-Nord (#3574)">
+    <div class="cam-label">A-540 (dir. sud) / boul. du Versant-Nord <span class="cam-id">(#3574)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3574" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3478,'A-540 (dir. nord) / boul. du Versant-Nord')" title="A-540 (dir. nord) / boul. du Versant-Nord (#3478)">
+    <div class="cam-label">A-540 (dir. nord) / boul. du Versant-Nord <span class="cam-id">(#3478)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3478" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3479,'A-540 (dir. sud) / av. Jules-Verne')" title="A-540 (dir. sud) / av. Jules-Verne (#3479)">
+    <div class="cam-label">A-540 (dir. sud) / av. Jules-Verne <span class="cam-id">(#3479)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3479" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3910,'A-540 (dir. nord) / av. Jules-Verne')" title="A-540 (dir. nord) / av. Jules-Verne (#3910)">
+    <div class="cam-label">A-540 (dir. nord) / av. Jules-Verne <span class="cam-id">(#3910)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3910" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a573">Québec — Autoroute 573 <span class="sec-count">(11)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3851,'A-573 (dir. sud) / aut. 40')" title="A-573 (dir. sud) / aut. 40 (#3851)">
+    <div class="cam-label">A-573 (dir. sud) / aut. 40 <span class="cam-id">(#3851)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3851" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3850,'A-573 (dir. nord) / aut. 40')" title="A-573 (dir. nord) / aut. 40 (#3850)">
+    <div class="cam-label">A-573 (dir. nord) / aut. 40 <span class="cam-id">(#3850)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3850" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3517,'A-573 (dir. sud) / rue Jean-Marchand')" title="A-573 (dir. sud) / rue Jean-Marchand (#3517)">
+    <div class="cam-label">A-573 (dir. sud) / rue Jean-Marchand <span class="cam-id">(#3517)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3517" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3852,'A-573 (dir. nord) / rue Jean-Marchand')" title="A-573 (dir. nord) / rue Jean-Marchand (#3852)">
+    <div class="cam-label">A-573 (dir. nord) / rue Jean-Marchand <span class="cam-id">(#3852)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3852" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3518,'A-573 (dir. sud) / boul. Chauveau Ouest')" title="A-573 (dir. sud) / boul. Chauveau Ouest (#3518)">
+    <div class="cam-label">A-573 (dir. sud) / boul. Chauveau Ouest <span class="cam-id">(#3518)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3518" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3519,'A-573 (dir. nord) / boul. Chauveau Ouest')" title="A-573 (dir. nord) / boul. Chauveau Ouest (#3519)">
+    <div class="cam-label">A-573 (dir. nord) / boul. Chauveau Ouest <span class="cam-id">(#3519)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3519" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3615,'A-573 (dir. sud) / route Sainte-Geneviève')" title="A-573 (dir. sud) / route Sainte-Geneviève (#3615)">
+    <div class="cam-label">A-573 (dir. sud) / route Sainte-Geneviève <span class="cam-id">(#3615)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3615" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3616,'A-573 (dir. nord) / route Sainte-Geneviève')" title="A-573 (dir. nord) / route Sainte-Geneviève (#3616)">
+    <div class="cam-label">A-573 (dir. nord) / route Sainte-Geneviève <span class="cam-id">(#3616)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3616" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3617,'A-573 (dir. sud) / av. Industrielle')" title="A-573 (dir. sud) / av. Industrielle (#3617)">
+    <div class="cam-label">A-573 (dir. sud) / av. Industrielle <span class="cam-id">(#3617)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3617" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3618,'A-573 (dir. nord) / av. Industrielle')" title="A-573 (dir. nord) / av. Industrielle (#3618)">
+    <div class="cam-label">A-573 (dir. nord) / av. Industrielle <span class="cam-id">(#3618)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3618" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3969,'A-573 (dir. nord) / rue de Montolieu')" title="A-573 (dir. nord) / rue de Montolieu (#3969)">
+    <div class="cam-label">A-573 (dir. nord) / rue de Montolieu <span class="cam-id">(#3969)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3969" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-a740">Québec — Autoroute 740 <span class="sec-count">(16)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3566,'A-740 (dir. sud) / ch. des Quatre-Bourgeois')" title="A-740 (dir. sud) / ch. des Quatre-Bourgeois (#3566)">
+    <div class="cam-label">A-740 (dir. sud) / ch. des Quatre-Bourgeois <span class="cam-id">(#3566)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3566" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3567,'A-740 (dir. nord) / ch. des Quatre-Bourgeois')" title="A-740 (dir. nord) / ch. des Quatre-Bourgeois (#3567)">
+    <div class="cam-label">A-740 (dir. nord) / ch. des Quatre-Bourgeois <span class="cam-id">(#3567)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3567" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3568,'A-740 (dir. sud) tunnel Robert-Bourassa')" title="A-740 (dir. sud) tunnel Robert-Bourassa (#3568)">
+    <div class="cam-label">A-740 (dir. sud) tunnel Robert-Bourassa <span class="cam-id">(#3568)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3568" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3569,'A-740 (dir. nord) tunnel Robert-Bourassa')" title="A-740 (dir. nord) tunnel Robert-Bourassa (#3569)">
+    <div class="cam-label">A-740 (dir. nord) tunnel Robert-Bourassa <span class="cam-id">(#3569)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3569" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3527,'A-740 (dir. sud) / boul. du Versant-Nord')" title="A-740 (dir. sud) / boul. du Versant-Nord (#3527)">
+    <div class="cam-label">A-740 (dir. sud) / boul. du Versant-Nord <span class="cam-id">(#3527)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3527" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3528,'A-740 (dir. nord) / boul. du Versant-Nord')" title="A-740 (dir. nord) / boul. du Versant-Nord (#3528)">
+    <div class="cam-label">A-740 (dir. nord) / boul. du Versant-Nord <span class="cam-id">(#3528)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3528" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3522,'A-740 (dir. sud) / rue Léon-Harmel')" title="A-740 (dir. sud) / rue Léon-Harmel (#3522)">
+    <div class="cam-label">A-740 (dir. sud) / rue Léon-Harmel <span class="cam-id">(#3522)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3522" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3628,'A-740 (dir. nord) / rue Léon-Harmel')" title="A-740 (dir. nord) / rue Léon-Harmel (#3628)">
+    <div class="cam-label">A-740 (dir. nord) / rue Léon-Harmel <span class="cam-id">(#3628)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3628" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3529,'A-740 (dir. nord) / boul. Wilfrid-Hamel')" title="A-740 (dir. nord) / boul. Wilfrid-Hamel (#3529)">
+    <div class="cam-label">A-740 (dir. nord) / boul. Wilfrid-Hamel <span class="cam-id">(#3529)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3529" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3530,'A-740 (dir. sud) / boul. Wilfrid-Hamel')" title="A-740 (dir. sud) / boul. Wilfrid-Hamel (#3530)">
+    <div class="cam-label">A-740 (dir. sud) / boul. Wilfrid-Hamel <span class="cam-id">(#3530)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3530" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3514,'A-740 (dir. sud) / boul. Père-Lelièvre')" title="A-740 (dir. sud) / boul. Père-Lelièvre (#3514)">
+    <div class="cam-label">A-740 (dir. sud) / boul. Père-Lelièvre <span class="cam-id">(#3514)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3514" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3513,'A-740 (dir. nord) / boul. Père-Lelièvre')" title="A-740 (dir. nord) / boul. Père-Lelièvre (#3513)">
+    <div class="cam-label">A-740 (dir. nord) / boul. Père-Lelièvre <span class="cam-id">(#3513)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3513" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3575,'A-740 (dir. sud) / aut. 40')" title="A-740 (dir. sud) / aut. 40 (#3575)">
+    <div class="cam-label">A-740 (dir. sud) / aut. 40 <span class="cam-id">(#3575)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3575" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3576,'A-740 (dir. nord) / aut. 40')" title="A-740 (dir. nord) / aut. 40 (#3576)">
+    <div class="cam-label">A-740 (dir. nord) / aut. 40 <span class="cam-id">(#3576)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3576" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3506,'A-740 (dir. sud) / boul. Lebourgneuf')" title="A-740 (dir. sud) / boul. Lebourgneuf (#3506)">
+    <div class="cam-label">A-740 (dir. sud) / boul. Lebourgneuf <span class="cam-id">(#3506)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3506" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3914,'A-740 (dir. nord) / boul. Lebourgneuf')" title="A-740 (dir. nord) / boul. Lebourgneuf (#3914)">
+    <div class="cam-label">A-740 (dir. nord) / boul. Lebourgneuf <span class="cam-id">(#3914)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3914" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-qc-r138">Québec — Route 138 <span class="sec-count">(6)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3955,'R-138 (dir. ouest) / ch. du Massif')" title="R-138 (dir. ouest) / ch. du Massif (#3955)">
+    <div class="cam-label">R-138 (dir. ouest) / ch. du Massif <span class="cam-id">(#3955)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3955" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3956,'R-138 (dir. est) / ch. du Massif')" title="R-138 (dir. est) / ch. du Massif (#3956)">
+    <div class="cam-label">R-138 (dir. est) / ch. du Massif <span class="cam-id">(#3956)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3956" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3996,'R-138 / Baie-Saint-Paul (Rang de la Martine)')" title="R-138 / Baie-Saint-Paul (Rang de la Martine) (#3996)">
+    <div class="cam-label">R-138 / Baie-Saint-Paul (Rang de la Martine) <span class="cam-id">(#3996)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3996" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3951,'R-138 / Côte de l\'Église (Boischatel)')" title="R-138 / Côte de l'Église (Boischatel) (#3951)">
+    <div class="cam-label">R-138 / Côte de l'Église (Boischatel) <span class="cam-id">(#3951)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3951" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3952,'R-138 / rue Gagnon (Ste-Anne-de-Beaupré)')" title="R-138 / rue Gagnon (Ste-Anne-de-Beaupré) (#3952)">
+    <div class="cam-label">R-138 / rue Gagnon (Ste-Anne-de-Beaupré) <span class="cam-id">(#3952)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3952" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3544,'R-138 — Baie-Sainte-Catherine')" title="R-138 — Baie-Sainte-Catherine (#3544)">
+    <div class="cam-label">R-138 — Baie-Sainte-Catherine <span class="cam-id">(#3544)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3544" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-montreal">Montréal <span class="sec-count">(8)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3399,'A-13 à l\'A-20')" title="A-13 à l'A-20 (#3399)">
+    <div class="cam-label">A-13 à l'A-20 <span class="cam-id">(#3399)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3399" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3398,'A-13 nord de l\'A-20')" title="A-13 nord de l'A-20 (#3398)">
+    <div class="cam-label">A-13 nord de l'A-20 <span class="cam-id">(#3398)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3398" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3340,'A-15 / Côte-Saint-Paul')" title="A-15 / Côte-Saint-Paul (#3340)">
+    <div class="cam-label">A-15 / Côte-Saint-Paul <span class="cam-id">(#3340)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3340" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3337,'A-15 / Sherbrooke Ouest')" title="A-15 / Sherbrooke Ouest (#3337)">
+    <div class="cam-label">A-15 / Sherbrooke Ouest <span class="cam-id">(#3337)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3337" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3329,'A-15 Sud — Décarie')" title="A-15 Sud — Décarie (#3329)">
+    <div class="cam-label">A-15 Sud — Décarie <span class="cam-id">(#3329)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3329" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3816,'A-20 ouest Turcot')" title="A-20 ouest Turcot (#3816)">
+    <div class="cam-label">A-20 ouest Turcot <span class="cam-id">(#3816)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3816" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3808,'A-25 / Tunnel La Fontaine')" title="A-25 / Tunnel La Fontaine (#3808)">
+    <div class="cam-label">A-25 / Tunnel La Fontaine <span class="cam-id">(#3808)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3808" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3425,'A-40 / A-25 — Anjou')" title="A-40 / A-25 — Anjou (#3425)">
+    <div class="cam-label">A-40 / A-25 — Anjou <span class="cam-id">(#3425)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3425" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-laval">Laval <span class="sec-count">(3)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3341,'A-15 / boul. Cartier Ouest')" title="A-15 / boul. Cartier Ouest (#3341)">
+    <div class="cam-label">A-15 / boul. Cartier Ouest <span class="cam-id">(#3341)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3341" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3342,'A-15 / boul. du Souvenir')" title="A-15 / boul. du Souvenir (#3342)">
+    <div class="cam-label">A-15 / boul. du Souvenir <span class="cam-id">(#3342)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3342" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3343,'A-15 / boul. Saint-Martin')" title="A-15 / boul. Saint-Martin (#3343)">
+    <div class="cam-label">A-15 / boul. Saint-Martin <span class="cam-id">(#3343)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3343" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-rive-sud">Rive-Sud <span class="sec-count">(3)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3322,'A-10 / pont Champlain')" title="A-10 / pont Champlain (#3322)">
+    <div class="cam-label">A-10 / pont Champlain <span class="cam-id">(#3322)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3322" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3323,'A-10 ouest route 134')" title="A-10 ouest route 134 (#3323)">
+    <div class="cam-label">A-10 ouest route 134 <span class="cam-id">(#3323)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3323" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3324,'A-10 est route 134')" title="A-10 est route 134 (#3324)">
+    <div class="cam-label">A-10 est route 134 <span class="cam-id">(#3324)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3324" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-hull">Hull / Gatineau <span class="sec-count">(5)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3580,'A-5 / boul. Maisonneuve')" title="A-5 / boul. Maisonneuve (#3580)">
+    <div class="cam-label">A-5 / boul. Maisonneuve <span class="cam-id">(#3580)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3580" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3581,'A-5 dir. sud / Casino')" title="A-5 dir. sud / Casino (#3581)">
+    <div class="cam-label">A-5 dir. sud / Casino <span class="cam-id">(#3581)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3581" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3584,'Échangeur A-50 / A-5')" title="Échangeur A-50 / A-5 (#3584)">
+    <div class="cam-label">Échangeur A-50 / A-5 <span class="cam-id">(#3584)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3584" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3591,'A-50 / boul. Allumettières')" title="A-50 / boul. Allumettières (#3591)">
+    <div class="cam-label">A-50 / boul. Allumettières <span class="cam-id">(#3591)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3591" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3596,'Boul. Fournier dir. sud')" title="Boul. Fournier dir. sud (#3596)">
+    <div class="cam-label">Boul. Fournier dir. sud <span class="cam-id">(#3596)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3596" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-laurentides">Laurentides <span class="sec-count">(3)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3345,'A-15 / pont Gédéon-Ouimet')" title="A-15 / pont Gédéon-Ouimet (#3345)">
+    <div class="cam-label">A-15 / pont Gédéon-Ouimet <span class="cam-id">(#3345)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3345" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3347,'A-15 / A-640')" title="A-15 / A-640 (#3347)">
+    <div class="cam-label">A-15 / A-640 <span class="cam-id">(#3347)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3347" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3349,'A-15 / ch. Côte Nord')" title="A-15 / ch. Côte Nord (#3349)">
+    <div class="cam-label">A-15 / ch. Côte Nord <span class="cam-id">(#3349)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3349" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-saguenay">Saguenay <span class="sec-count">(8)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3536,'R-175 / Rive Sud')" title="R-175 / Rive Sud (#3536)">
+    <div class="cam-label">R-175 / Rive Sud <span class="cam-id">(#3536)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3536" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3537,'R-175 / Rive Sud (2)')" title="R-175 / Rive Sud (2) (#3537)">
+    <div class="cam-label">R-175 / Rive Sud (2) <span class="cam-id">(#3537)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3537" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3538,'R-175 / Rive Nord')" title="R-175 / Rive Nord (#3538)">
+    <div class="cam-label">R-175 / Rive Nord <span class="cam-id">(#3538)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3538" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3539,'R-175 / Rive Nord (2)')" title="R-175 / Rive Nord (2) (#3539)">
+    <div class="cam-label">R-175 / Rive Nord (2) <span class="cam-id">(#3539)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3539" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3890,'R-169 Nord / R-172')" title="R-169 Nord / R-172 (#3890)">
+    <div class="cam-label">R-169 Nord / R-172 <span class="cam-id">(#3890)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3890" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3876,'R-169 Sud / Sainte-Cécile')" title="R-169 Sud / Sainte-Cécile (#3876)">
+    <div class="cam-label">R-169 Sud / Sainte-Cécile <span class="cam-id">(#3876)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3876" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3877,'R-169 Nord / Sainte-Cécile')" title="R-169 Nord / Sainte-Cécile (#3877)">
+    <div class="cam-label">R-169 Nord / Sainte-Cécile <span class="cam-id">(#3877)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3877" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3889,'R-172 Est / R-169')" title="R-172 Est / R-169 (#3889)">
+    <div class="cam-label">R-172 Est / R-169 <span class="cam-id">(#3889)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3889" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-route138">Route 138 (hors Québec) <span class="sec-count">(7)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3406,'Route 138 — pont Honoré-Mercier')" title="Route 138 — pont Honoré-Mercier (#3406)">
+    <div class="cam-label">Route 138 — pont Honoré-Mercier <span class="cam-id">(#3406)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3406" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3405,'Route 138 / rue Airlie')" title="Route 138 / rue Airlie (#3405)">
+    <div class="cam-label">Route 138 / rue Airlie <span class="cam-id">(#3405)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3405" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3404,'Route 138 / rue Wanklyn')" title="Route 138 / rue Wanklyn (#3404)">
+    <div class="cam-label">Route 138 / rue Wanklyn <span class="cam-id">(#3404)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3404" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3403,'Route 138 / rue Clément')" title="Route 138 / rue Clément (#3403)">
+    <div class="cam-label">Route 138 / rue Clément <span class="cam-id">(#3403)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3403" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3361,'Route 138 sud de Saint-Pierre')" title="Route 138 sud de Saint-Pierre (#3361)">
+    <div class="cam-label">Route 138 sud de Saint-Pierre <span class="cam-id">(#3361)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3361" type="video/mp4">
+    </video>
+  </td>
+</tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3401,'Route 138 — pont Le Gardeur')" title="Route 138 — pont Le Gardeur (#3401)">
+    <div class="cam-label">Route 138 — pont Le Gardeur <span class="cam-id">(#3401)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3401" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell" onclick="openCam(3992,'Route 138 — La Malbaie')" title="Route 138 — La Malbaie (#3992)">
+    <div class="cam-label">Route 138 — La Malbaie <span class="cam-id">(#3992)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3992" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+<tr><td colspan="5" class="sec-hdr" id="sec-parc-laurentides">Parc des Laurentides <span class="sec-count">(1)</span></td></tr>
+<tr>
+  <td class="cam-cell" onclick="openCam(3535,'R-175 à l\'Étape (Parc des Laurentides)')" title="R-175 à l'Étape (Parc des Laurentides) (#3535)">
+    <div class="cam-label">R-175 à l'Étape (Parc des Laurentides) <span class="cam-id">(#3535)</span></div>
+    <video class="cam-vid" autoplay muted loop playsinline>
+      <source src="https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=3535" type="video/mp4">
+    </video>
+  </td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+  <td class="cam-cell cam-empty"></td>
+</tr>
+</table>
+
+<div class="back-top"><a href="#TOP">↑ RETOUR EN HAUT</a></div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mhdr-title" id="mtitle">Caméra</span>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <video class="mvid-full" id="mvid" autoplay muted loop playsinline controls></video>
+    <div class="mmeta" id="mmeta"></div>
+  </div>
+</div>
+
+<script>
+// Sync theme from parent iframe
+try {
+  const t = window.parent.document.documentElement.getAttribute('data-theme');
+  if(t) document.documentElement.setAttribute('data-theme', t);
+  new MutationObserver(()=>{
+    const t2 = window.parent.document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', t2||'');
+  }).observe(window.parent.document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+} catch(e){}
+
+function jumpTo(id, btn) {
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const el = document.getElementById('sec-'+id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function scrollTop(btn) {
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const VID = 'https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=';
+
+function doRefresh() {
+  const now = Date.now();
+  document.querySelectorAll('.cam-vid source').forEach(src => {
+    src.src = VID + src.src.split('id=')[1].split('&')[0] + '&_t=' + now;
+    const v = src.parentElement;
+    if(v.paused || v.error) { v.load(); v.play().catch(()=>{}); }
+  });
+  document.getElementById('stmsg').textContent =
+    'Rafraîchi ' + new Date().toLocaleTimeString('fr-CA') + ' · 184 caméras';
+}
+setInterval(doRefresh, 300000);
+
+function openCam(id, name) {
+  document.getElementById('mtitle').textContent = name.replace(/\'/g,"'");
+  const v = document.getElementById('mvid');
+  v.src = VID + id + '&_t=' + Date.now();
+  v.load(); v.play().catch(()=>{});
+  document.getElementById('mmeta').innerHTML =
+    '<div><label>ID</label>' + id + '</div>' +
+    '<div><label>Localisation</label>' + name.replace(/\'/g,"'") + '</div>' +
+    '<div><label>Source</label>Transports Québec</div>' +
+    '<div><label>Heure</label>' + new Date().toLocaleString('fr-CA') + '</div>';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  const v = document.getElementById('mvid'); v.pause(); v.src='';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
