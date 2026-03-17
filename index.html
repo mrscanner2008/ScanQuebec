@@ -797,7 +797,6 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
 <div id="page-cameras" class="page">
   <iframe
     id="iframe-cameras"
-    src=""
     data-src="cameras.html"
     style="width:100%;height:calc(100vh - 56px);border:none;display:block;margin-top:56px"
     title="Caméras MTQ — ScanQC"
@@ -1793,7 +1792,10 @@ function showPage(id) {
   if (id==='blog') renderBlog();
   if (id==='cameras') {
     const fr = document.getElementById('iframe-cameras');
-    if (fr && !fr.src) fr.src = fr.dataset.src;
+    if (fr && !fr.dataset.loaded) {
+      fr.src = fr.dataset.src;
+      fr.dataset.loaded = '1';
+    }
     // Sync theme to iframe
     try {
       const t = document.documentElement.getAttribute('data-theme');
