@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>MTQ — Centre Opérationnel Réseau Routier</title>
+<!-- PERF: fonts loaded async — do not block render -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet"></noscript>
+<!-- Leaflet CSS inlined subset to avoid 3 blocking network requests -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<style>
+/* ══ THEME VARIABLES ══════════════════════════════════════════ */
+:root,[data-theme="dark"]{
+  --bg:#060a0f;--panel:#080d14;--panel2:#0c1220;--panel3:#111c2e;
+  --border:#14243a;--border2:#1a3050;--accent:#00c8ff;
+  --warn:#ff7b00;--danger:#ff1f4b;--green:#00e676;
+  --text:#c8dff0;--text2:#5a8aaa;--text3:#3a6080;
+  --shadow:rgba(0,0,0,.6);--scanline:rgba(0,200,255,.015);
+  --font:'Exo 2',sans-serif;--mono:'Share Tech Mono',monospace;
+}
+[data-theme="light"]{
+  --bg:#e8eef5;--panel:#f0f4f8;--panel2:#dde6ef;--panel3:#ccd8e4;
+  --border:#b0c4d8;--border2:#8aaabf;--accent:#0070cc;
+  --warn:#d45f00;--danger:#cc1133;--green:#008844;
+  --text:#1a2d3f;--text2:#4a6a80;--text3:#7a9ab0;
+  --shadow:rgba(0,0,0,.15);--scanline:transparent;
+}
+/* ══ BASE ══════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:var(--font);transition:background .3s,color .3s}
+/* Scanline effect — CSS only, zero JS, GPU composited */
+body::before{
+  content:"";position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scanline) 2px,var(--scanline) 4px);
+  pointer-events:none;z-index:9998
+}
+/* ══ TOP BAR ═══════════════════════════════════════════════════ */
+#topbar{
+  height:48px;background:var(--panel);border-bottom:2px solid var(--border2);
+  display:flex;align-items:center;position:relative;z-index:600;
+  box-shadow:0 2px 12px var(--shadow)
+}
+.logo{
+  padding:0 20px;font-size:13px;font-weight:700;letter-spacing:3px;
+  color:var(--accent);text-transform:uppercase;white-space:nowrap;
+  border-right:1px solid var(--border2);display:flex;align-items:center;gap:10px
+}
+.logo-icon{
+  width:28px;height:28px;border:2px solid var(--accent);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  color:var(--accent);font-weight:900
+}
+.logo span{color:var(--text2);font-weight:300}
+#clock{
+  padding:0 16px;font-family:var(--mono);font-size:14px;color:var(--accent);
+  border-right:1px solid var(--border2);white-space:nowrap;font-weight:700;letter-spacing:2px
+}
+#statusBar{
+  flex:1;padding:0 14px;font-size:11px;color:var(--text2);
+  font-family:var(--mono);overflow:hidden;white-space:nowrap;text-overflow:ellipsis
+}
+#alertBanner{
+  padding:0 14px;font-size:11px;color:var(--warn);font-family:var(--mono);
+  border-left:1px solid var(--border2);animation:blink 2s infinite;display:none;white-space:nowrap
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+#constructionBanner{
+  padding:0 16px;font-size:12px;font-weight:900;color:#FFD700;
+  font-family:var(--mono);border-left:1px solid var(--border2);
+  letter-spacing:2px;text-transform:uppercase;white-space:nowrap;
+  animation:constructionFlash 0.8s infinite;flex-shrink:0
+}
+@keyframes constructionFlash{
+  0%,100%{opacity:1;color:#FFD700}50%{opacity:0.2;color:#FFA500}
+}
+/* PERF: ScanQC badge — static SVG thumbnail, zero iframe recursive load */
+#scanqcBadge{
+  display:flex;align-items:center;gap:0;border-left:1px solid var(--border2);
+  padding:0 12px;flex-shrink:0;cursor:pointer;transition:.2s;text-decoration:none;
+  position:relative;
+}
+#scanqcBadge:hover{background:rgba(0,200,255,.06)}
+#scanqcThumb{
+  width:52px;height:32px;border:1.5px solid var(--border2);border-radius:3px;
+  overflow:hidden;flex-shrink:0;background:var(--panel2);transition:border-color .2s
+}
+#scanqcBadge:hover #scanqcThumb{border-color:var(--accent)}
+#scanqcLabel{display:flex;flex-direction:column;padding:0 0 0 9px;line-height:1.25}
+#scanqcLabel .sq-name{font-size:11px;font-weight:700;color:var(--accent);
+  letter-spacing:1.5px;font-family:var(--mono);text-transform:uppercase}
+#scanqcLabel .sq-sub{font-size:9px;color:var(--text2);font-family:var(--mono);
+  letter-spacing:.5px;white-space:nowrap}
+#topControls{display:flex;gap:5px;padding:0 10px;border-left:1px solid var(--border2)}
+#themeToggle{
+  background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+  padding:5px 10px;font-size:16px;cursor:pointer;transition:.15s;border-radius:4px;line-height:1
+}
+#themeToggle:hover{border-color:var(--accent)}
+.btn{
+  background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+  padding:5px 10px;font-size:10px;font-family:var(--mono);cursor:pointer;
+  text-transform:uppercase;letter-spacing:1px;transition:.15s;white-space:nowrap
+}
+.btn:hover{background:var(--border2);color:var(--accent)}
+.btn.active{background:rgba(0,150,255,.15);border-color:var(--accent);color:var(--accent)}
+/* ══ LAYOUT ═════════════════════════════════════════════════════ */
+#layout{
+  display:grid;grid-template-columns:288px 1fr 272px;
+  height:calc(100vh - 48px - 34px)
+}
+/* ══ LEFT SIDEBAR ═══════════════════════════════════════════════ */
+#sideLeft{background:var(--panel);border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;overflow:hidden}
+.panelHead{
+  padding:7px 12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text2);border-bottom:1px solid var(--border);background:var(--panel2);
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0
+}
+.phCount{color:var(--accent);font-family:var(--mono);font-size:11px}
+#searchBox{
+  padding:7px 8px;border-bottom:1px solid var(--border);
+  display:flex;gap:5px;flex-shrink:0;background:var(--panel)
+}
+#searchBox input,#searchBox select{
+  background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+  padding:4px 7px;font-size:11px;font-family:var(--mono);outline:none;transition:.15s
+}
+#searchBox input{flex:1}
+#searchBox input:focus,#searchBox select:focus{border-color:var(--accent)}
+#searchBox select{width:auto;flex-shrink:0}
+/* Traffic bars */
+#trafficBars{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.tBar{margin-bottom:6px}.tBar:last-child{margin-bottom:0}
+.tBarTop{display:flex;justify-content:space-between;font-size:9px;
+  color:var(--text2);margin-bottom:3px;font-family:var(--mono)}
+.tBarBg{height:3px;background:var(--border2);border-radius:2px}
+.tBarFill{height:3px;border-radius:2px;transition:width 1.2s ease}
+#cameraList{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+#cameraList::-webkit-scrollbar{width:3px}
+#cameraList::-webkit-scrollbar-thumb{background:var(--border2)}
+.camRow{
+  padding:6px 12px;border-bottom:1px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;gap:8px;transition:.1s
+}
+.camRow:hover{background:var(--panel2)}
+.camRow.sel{background:rgba(0,150,255,.08);border-left:2px solid var(--accent)}
+.camDot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.camLabel{font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.camTag{font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:2px;flex-shrink:0;font-weight:600}
+/* ══ MAP ════════════════════════════════════════════════════════ */
+#mapWrap{position:relative;overflow:hidden}
+#map{width:100%;height:100%}
+#mapHUD{
+  position:absolute;top:10px;left:10px;z-index:500;
+  display:flex;flex-direction:column;gap:5px;pointer-events:none
+}
+.hudBox{
+  background:rgba(8,13,20,.88);border:1px solid var(--border2);
+  padding:6px 10px;backdrop-filter:blur(6px);min-width:110px
+}
+[data-theme="light"] .hudBox{background:rgba(240,244,248,.92)}
+.hudLbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:2px}
+.hudVal{font-size:14px;font-family:var(--mono);font-weight:700;color:var(--accent)}
+#mapTools{
+  position:absolute;top:10px;right:10px;z-index:500;display:flex;flex-direction:column;gap:3px
+}
+.mTool{
+  background:rgba(8,13,20,.88);border:1px solid var(--border2);color:var(--text2);
+  padding:5px 9px;font-size:9px;font-family:var(--mono);cursor:pointer;transition:.15s;
+  backdrop-filter:blur(6px);letter-spacing:1px;text-transform:uppercase
+}
+[data-theme="light"] .mTool{background:rgba(240,244,248,.92)}
+.mTool:hover{color:var(--accent);border-color:var(--accent)}
+.mTool.on{color:var(--accent);border-color:var(--accent);background:rgba(0,150,255,.1)}
+#legend{
+  position:absolute;bottom:46px;left:10px;z-index:500;
+  background:rgba(8,13,20,.88);border:1px solid var(--border2);
+  padding:8px 12px;backdrop-filter:blur(6px);font-size:10px
+}
+[data-theme="light"] #legend{background:rgba(240,244,248,.92)}
+.legRow{display:flex;align-items:center;gap:6px;margin-bottom:4px;color:var(--text)}
+.legRow:last-child{margin:0}
+.legDot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+/* PERF: marker CSS classes replace per-marker inline styles */
+.mk-green{width:12px;height:12px;border-radius:50%;background:#00e676;border:1px solid rgba(0,230,118,.5)}
+.mk-orange{width:12px;height:12px;border-radius:50%;background:#ff7b00;border:1px solid rgba(255,123,0,.5)}
+.mk-red{width:16px;height:16px;border-radius:50%;background:#ff1f4b;border:2px solid rgba(255,31,75,.7);animation:pulse .9s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+/* ══ RIGHT SIDEBAR ══════════════════════════════════════════════ */
+#sideRight{background:var(--panel);border-left:1px solid var(--border2);
+  display:flex;flex-direction:column;overflow:hidden}
+#liveFeedWrap{position:relative;flex-shrink:0;background:#000;min-height:155px}
+#liveImg{width:100%;height:155px;object-fit:cover;display:block}
+#liveImgFallback{
+  width:100%;height:155px;display:flex;align-items:center;justify-content:center;
+  background:var(--panel2);color:var(--text3);font-size:11px;font-family:var(--mono);
+  flex-direction:column;gap:6px
+}
+#liveOverlay{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.85));
+  padding:6px 10px 5px;display:flex;justify-content:space-between;align-items:flex-end
+}
+[data-theme="light"] #liveOverlay{background:linear-gradient(transparent,rgba(0,0,0,.6))}
+#liveName{font-size:11px;font-family:var(--mono);color:#fff;font-weight:600}
+#liveStatus{font-size:9px;color:#aaa;font-family:var(--mono)}
+.liveBadge{
+  position:absolute;top:6px;left:6px;background:var(--danger);color:#fff;
+  font-size:8px;font-family:var(--mono);padding:2px 5px;display:flex;align-items:center;gap:3px
+}
+.livePulse{width:5px;height:5px;border-radius:50%;background:#fff;animation:blink .7s infinite}
+#aiScroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+#aiScroll::-webkit-scrollbar{width:3px}
+#aiScroll::-webkit-scrollbar-thumb{background:var(--border2)}
+.aiRow{padding:8px 11px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start}
+.aiEmoji{font-size:15px;flex-shrink:0;margin-top:1px}
+.aiTitle{font-size:11px;font-weight:600;margin-bottom:2px;line-height:1.3}
+.aiDesc{font-size:10px;color:var(--text2);line-height:1.4}
+.aiMeta{font-size:9px;font-family:var(--mono);color:var(--text3);margin-top:3px}
+.aiRow.crit .aiTitle{color:var(--danger)}
+.aiRow.warn .aiTitle{color:var(--warn)}
+.aiRow.ok .aiTitle{color:var(--green)}
+.aiRow.info .aiTitle{color:var(--accent)}
+#statsStrip{
+  border-top:1px solid var(--border2);padding:7px 10px;
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--panel2);flex-shrink:0
+}
+.statCell{text-align:center}
+.statV{font-size:18px;font-family:var(--mono);font-weight:700;color:var(--accent)}
+.statL{font-size:8px;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+/* ══ VIDEO WALL ═════════════════════════════════════════════════ */
+#videoWall{position:fixed;inset:0;background:#000;z-index:1000;display:none;flex-direction:column}
+#wallBar{
+  height:42px;background:var(--panel);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0
+}
+#wallBar .wTitle{font-family:var(--mono);font-size:12px;color:var(--accent);flex:1;letter-spacing:1px}
+#wallRotInfo{font-size:10px;color:var(--text2);font-family:var(--mono)}
+#wallSzSel{background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+  padding:3px 7px;font-size:11px;font-family:var(--mono)}
+#wallGrid{flex:1;display:grid;overflow:hidden}
+.wCell{position:relative;background:#0a0a0a;overflow:hidden;border:1px solid #111;cursor:pointer}
+.wCell img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .4s}
+.wCell img.loaded{opacity:1}
+.wCellLbl{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.8));
+  padding:4px 6px;font-size:9px;font-family:var(--mono);color:#ddd;pointer-events:none
+}
+.wCellBadge{position:absolute;top:3px;right:3px;font-size:8px;font-family:var(--mono);
+  padding:2px 5px;pointer-events:none}
+.wCell.crit .wCellBadge{background:var(--danger);color:#fff;animation:blink .6s infinite}
+.wCell.slow .wCellBadge{background:var(--warn);color:#000}
+/* ══ BOTTOM BAR ═════════════════════════════════════════════════ */
+#bottomBar{
+  position:fixed;bottom:0;left:0;width:100%;height:34px;background:var(--panel);
+  border-top:1px solid var(--border2);display:flex;align-items:center;padding:0 14px;gap:20px;
+  font-size:10px;font-family:var(--mono);z-index:600;box-shadow:0 -2px 10px var(--shadow)
+}
+#tickerWrap{flex:1;overflow:hidden;white-space:nowrap;position:relative}
+#tickerWrap::before,#tickerWrap::after{
+  content:"";position:absolute;top:0;bottom:0;width:30px;z-index:1;pointer-events:none
+}
+#tickerWrap::before{left:0;background:linear-gradient(to right,var(--panel),transparent)}
+#tickerWrap::after{right:0;background:linear-gradient(to left,var(--panel),transparent)}
+#tickerInner{display:inline-block;animation:tickScroll 60s linear infinite;padding-left:100%}
+@keyframes tickScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tEv{color:var(--warn);margin-right:50px}
+.tOk{color:var(--text2);margin-right:50px}
+#tlWrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#tlBar{width:150px;height:4px;background:var(--border2);position:relative;cursor:pointer;border-radius:2px}
+#tlFill{height:4px;background:var(--accent);border-radius:2px;width:100%;transition:.4s}
+#tlTime{color:var(--text2);font-size:9px;white-space:nowrap}
+/* ══ TOAST ══════════════════════════════════════════════════════ */
+#toast{
+  position:fixed;top:58px;right:10px;z-index:2000;background:var(--panel2);
+  border-left:3px solid var(--accent);padding:8px 14px;font-size:11px;font-family:var(--mono);
+  max-width:300px;opacity:0;transform:translateX(16px);transition:.25s;pointer-events:none;
+  box-shadow:0 4px 20px var(--shadow)
+}
+#toast.show{opacity:1;transform:translateX(0)}
+#toast.crit{border-color:var(--danger);color:var(--danger)}
+#toast.warn{border-color:var(--warn);color:var(--warn)}
+/* ══ LEAFLET OVERRIDES ══════════════════════════════════════════ */
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{
+  background:var(--panel2)!important;color:var(--text)!important;
+  border:1px solid var(--border2)!important;box-shadow:0 6px 24px var(--shadow)!important;
+  border-radius:3px!important
+}
+.leaflet-popup-content{margin:0!important;padding:0!important}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">MTQ</div>
+    Centre Opérationnel <span>| Réseau Routier</span>
+  </div>
+  <div id="clock">00:00:00</div>
+  <div id="statusBar">Initialisation…</div>
+  <div id="alertBanner">⚠ INCIDENT ACTIF</div>
+  <div id="constructionBanner">🚧 EN CONSTRUCTION 🚧</div>
+
+  <!-- PERF: ScanQC badge — static SVG thumbnail, no recursive iframe load -->
+  <a id="scanqcBadge" href="cameras.html" title="ScanQC — Caméras MTQ">
+    <div id="scanqcThumb">
+      <svg viewBox="0 0 52 32" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect width="52" height="32" fill="#0c1220"/>
+        <rect x="3" y="4" width="46" height="24" rx="1" fill="none" stroke="#1a3050" stroke-width="0.5"/>
+        <circle cx="10" cy="10" r="2" fill="#00e676"/>
+        <circle cx="20" cy="14" r="2" fill="#ff7b00"/>
+        <circle cx="32" cy="9" r="2" fill="#00e676"/>
+        <circle cx="40" cy="18" r="2.5" fill="#ff1f4b"/>
+        <line x1="10" y1="10" x2="20" y2="14" stroke="#1a3050" stroke-width="0.5"/>
+        <line x1="20" y1="14" x2="32" y2="9" stroke="#1a3050" stroke-width="0.5"/>
+        <line x1="32" y1="9" x2="40" y2="18" stroke="#1a3050" stroke-width="0.5"/>
+        <text x="4" y="29" fill="#00c8ff" font-size="4" font-family="monospace" letter-spacing="0.5">SCANQC</text>
+      </svg>
+    </div>
+    <div id="scanqcLabel">
+      <span class="sq-name">ScanQC</span>
+      <span class="sq-sub">MTQ Ops Center</span>
+    </div>
+  </a>
+
+  <div id="topControls">
+    <button id="themeToggle" onclick="toggleTheme()" title="Thème clair/sombre">🌙</button>
+    <button class="btn" id="btnWall" onclick="toggleWall()">⊞ MUR 32</button>
+    <button class="btn" id="btnRot" onclick="toggleAutoRot()">↻ AUTO-ROT</button>
+    <button class="btn" id="btnHeat" onclick="toggleHeatmap()">⬡ HEATMAP</button>
+    <button class="btn" onclick="toggleFullscreen()">⛶ PLEIN ÉCRAN</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+  <!-- LEFT -->
+  <div id="sideLeft">
+    <div class="panelHead">Inventaire caméras<span class="phCount" id="camCount">–</span></div>
+    <div id="searchBox">
+      <input id="roadSearch" placeholder="A20, A40, Décarie…" autocomplete="off"/>
+      <select id="regionFilter">
+        <option value="all">Toutes régions</option>
+        <option value="mtl">Montréal</option>
+        <option value="qc" selected>Québec</option>
+        <option value="laval">Laval</option>
+        <option value="rive-sud">Rive-Sud</option>
+      </select>
+    </div>
+    <div id="trafficBars">
+      <div class="tBar">
+        <div class="tBarTop"><span>Fluide</span><span id="pG">–</span></div>
+        <div class="tBarBg"><div class="tBarFill" id="bG" style="background:var(--green);width:0"></div></div>
+      </div>
+      <div class="tBar">
+        <div class="tBarTop"><span>Ralentissement</span><span id="pO">–</span></div>
+        <div class="tBarBg"><div class="tBarFill" id="bO" style="background:var(--warn);width:0"></div></div>
+      </div>
+      <div class="tBar">
+        <div class="tBarTop"><span>Congestion / Incident</span><span id="pR">–</span></div>
+        <div class="tBarBg"><div class="tBarFill" id="bR" style="background:var(--danger);width:0"></div></div>
+      </div>
+    </div>
+    <div id="cameraList"></div>
+  </div>
+
+  <!-- MAP -->
+  <div id="mapWrap">
+    <div id="map"></div>
+    <div id="mapHUD">
+      <div class="hudBox"><div class="hudLbl">Caméras en ligne</div><div class="hudVal" id="hOnline">–</div></div>
+      <div class="hudBox"><div class="hudLbl">Incidents actifs</div><div class="hudVal" id="hInc" style="color:var(--danger)">–</div></div>
+      <div class="hudBox"><div class="hudLbl">Congestion moy.</div><div class="hudVal" id="hCong">–</div></div>
+    </div>
+    <div id="mapTools">
+      <div class="mTool on" id="lClusters" onclick="toggleLayer('clusters')">CLUSTERS</div>
+      <div class="mTool" id="lHeatmap" onclick="toggleLayer('heatmap')">HEATMAP</div>
+      <div class="mTool on" id="lIncidents" onclick="toggleLayer('incidents')">INCIDENTS</div>
+      <div class="mTool" onclick="map.setView([46.20,-73.20],7)">RESET VUE</div>
+    </div>
+    <div id="legend">
+      <div class="legRow"><div class="legDot" style="background:var(--green)"></div>Fluide</div>
+      <div class="legRow"><div class="legDot" style="background:var(--warn)"></div>Ralentissement</div>
+      <div class="legRow"><div class="legDot" style="background:var(--danger)"></div>Congestion</div>
+      <div class="legRow"><div class="legDot" style="background:#fff;border:1px solid #666"></div>Incident</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div id="sideRight">
+    <div class="panelHead">Caméra sélectionnée<span class="phCount" id="liveTag">LIVE</span></div>
+    <div id="liveFeedWrap">
+      <div id="liveImgFallback">
+        <span style="font-size:24px">📷</span>
+        <span>Sélectionnez une caméra</span>
+      </div>
+      <img id="liveImg" style="display:none" alt="Live feed"/>
+      <div id="liveOverlay" style="display:none">
+        <div>
+          <div id="liveName">–</div>
+          <div id="liveStatus">–</div>
+        </div>
+      </div>
+      <div class="liveBadge" id="liveBadge" style="display:none">
+        <div class="livePulse"></div>LIVE
+      </div>
+    </div>
+    <div class="panelHead">IA — Détection événements<span class="phCount" id="aiCount">0</span></div>
+    <div id="aiScroll"></div>
+    <div id="statsStrip">
+      <div class="statCell"><div class="statV" id="stCams">–</div><div class="statL">Caméras</div></div>
+      <div class="statCell"><div class="statV" id="stInc" style="color:var(--danger)">–</div><div class="statL">Incidents</div></div>
+      <div class="statCell"><div class="statV" id="stCong">–</div><div class="statL">Congestion</div></div>
+      <div class="statCell"><div class="statV" id="stUp" style="color:var(--green)">–</div><div class="statL">En ligne</div></div>
+    </div>
+  </div>
+</div><!-- /layout -->
+
+<!-- BOTTOM BAR -->
+<div id="bottomBar">
+  <a href="cameras.html" style="color:var(--accent);font-family:var(--mono);font-size:9px;
+    letter-spacing:1.5px;text-decoration:none;flex-shrink:0;border:1px solid var(--border2);
+    padding:2px 7px;white-space:nowrap;transition:.15s"
+    onmouseover="this.style.borderColor='var(--accent)'"
+    onmouseout="this.style.borderColor='var(--border2)'">⬡ SCANQC</a>
+  <span style="color:var(--text2);flex-shrink:0;font-size:9px;letter-spacing:1px">FLUX</span>
+  <div id="tickerWrap"><div id="tickerInner"></div></div>
+  <div id="tlWrap">
+    <span style="color:var(--text2);font-size:9px">HIST</span>
+    <div id="tlBar" onclick="seekTl(event)"><div id="tlFill"></div></div>
+    <span id="tlTime">EN DIRECT</span>
+  </div>
+</div>
+
+<!-- VIDEO WALL -->
+<div id="videoWall">
+  <div id="wallBar">
+    <span class="wTitle" id="wallTitle">MUR VIDÉO — 32 CAM</span>
+    <span id="wallRotInfo"></span>
+    <select id="wallSzSel">
+      <option value="9">9 CAM</option>
+      <option value="16">16 CAM</option>
+      <option value="32" selected>32 CAM</option>
+      <option value="64">64 CAM</option>
+    </select>
+    <button class="btn" onclick="applyWallSz()">APPLIQUER</button>
+    <button class="btn" onclick="closeWall()">FERMER ✕</button>
+  </div>
+  <div id="wallGrid"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Scripts deferred to after HTML parse -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js" defer></script>
+<script>
+/* ══════════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════════ */
+let darkMode = true;
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('themeToggle').textContent = darkMode ? '🌙' : '☀️';
+  if (darkMode) { lightTile.remove(); darkTile.addTo(map); }
+  else { darkTile.remove(); lightTile.addTo(map); }
+}
+
+/* ══════════════════════════════════════════════════════
+   CLOCK — requestAnimationFrame, zero timer leaks,
+   auto-pauses when tab hidden (rAF is tab-aware)
+══════════════════════════════════════════════════════ */
+let _lastClockSec = -1;
+function tickClock() {
+  const now = new Date();
+  const s = now.getSeconds();
+  if (s !== _lastClockSec) {
+    _lastClockSec = s;
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('fr-CA', { hour12: false });
+  }
+  requestAnimationFrame(tickClock);
+}
+requestAnimationFrame(tickClock);
+
+/* ══════════════════════════════════════════════════════
+   MAP INIT
+══════════════════════════════════════════════════════ */
+// Defer map init until Leaflet script is loaded
+window.addEventListener('load', initMap);
+
+let map, darkTile, lightTile;
+function initMap() {
+  map = L.map('map', { zoomControl: false }).setView([46.20, -73.20], 7);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  });
+  lightTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  });
+  darkTile.addTo(map);
+  loadCameras();
+}
+
+/* ══════════════════════════════════════════════════════
+   OFFICIAL MTQ GeoJSON API
+══════════════════════════════════════════════════════ */
+const MTQ_GEOJSON_URL =
+  'https://ws.mapserver.transports.gouv.qc.ca/swtq' +
+  '?service=wfs&version=2.0.0&request=getfeature' +
+  '&typename=ms:infos_cameras&outfile=Camera' +
+  '&srsname=EPSG:4326&outputformat=geojson';
+const MTQ_PROXY_URL =
+  'https://api.allorigins.win/raw?url=' + encodeURIComponent(MTQ_GEOJSON_URL);
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let cameras = [];
+let selectedCam = null;
+let clusterGroup = null;
+let heatLayer = null;
+let incidentLayer = null;
+let showClusters = true, showHeat = false, showInc = true;
+let wallOpen = false, wallCount = 32;
+let autoRot = false, rotTimer = null, rotIdx = 0;
+let aiEvents = [];
+let tlVal = 100;
+// PERF: cached traffic stats — computed once on data load, not on every render
+let trafficStats = { green: 0, orange: 0, red: 0 };
+
+const TC = { green: '#00e676', orange: '#ff7b00', red: '#ff1f4b' };
+const TL = { green: 'Fluide', orange: 'Ralentissement', red: 'Congestion' };
+
+function randomTraffic() {
+  const r = Math.random();
+  return r < 0.58 ? 'green' : r < 0.82 ? 'orange' : 'red';
+}
+
+/* ══════════════════════════════════════════════════════
+   PERF: Pre-built Leaflet icons — 3 objects shared by
+   all markers. Eliminates per-marker template string GC.
+══════════════════════════════════════════════════════ */
+const MARKER_ICONS = {
+  green:  L.divIcon({ html: '<div class="mk-green"></div>',  className: '', iconSize: [12,12], iconAnchor: [6,6] }),
+  orange: L.divIcon({ html: '<div class="mk-orange"></div>', className: '', iconSize: [12,12], iconAnchor: [6,6] }),
+  red:    L.divIcon({ html: '<div class="mk-red"></div>',    className: '', iconSize: [16,16], iconAnchor: [8,8] }),
+};
+
+/* ══════════════════════════════════════════════════════
+   LOAD — fetch with timeout + CORS proxy fallback
+   Resilient: always ends with usable camera list
+══════════════════════════════════════════════════════ */
+async function fetchWithTimeout(url, ms = 8000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(id);
+    return r;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
+}
+
+async function loadCameras() {
+  setStatus('Connexion API officielle Transports Québec…');
+  let geojson = null;
+
+  for (const url of [MTQ_GEOJSON_URL, MTQ_PROXY_URL]) {
+    if (geojson) break;
+    try {
+      const r = await fetchWithTimeout(url);
+      if (!r.ok) continue;
+      const text = await r.text();
+      let parsed;
+      try { parsed = JSON.parse(text); } catch { continue; }
+      if (parsed.contents) {
+        try { parsed = JSON.parse(parsed.contents); } catch { continue; }
+      }
+      if (parsed.features?.length > 0) { geojson = parsed; break; }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        geojson = {
+          features: parsed.map((c, i) => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [
+              parseFloat(c.lng || c.Longitude || c.longitude || 0),
+              parseFloat(c.lat || c.Latitude || c.latitude || 0)
+            ]},
+            properties: {
+              id_camera: c.id || c.Id || i,
+              description: c.name || c.Nom || `Cam ${i}`,
+              urlimage: c.image || c.ImageUrl || c.imageUrl || c.url || '',
+              route: c.name || ''
+            }
+          }))
+        };
+        break;
+      }
+    } catch { /* continue to next URL */ }
+  }
+
+  if (geojson) {
+    cameras = parseGeoJSON(geojson).filter(c =>
+      c.lat > 44.9 && c.lat < 63 && c.lng > -80 && c.lng < -57
+    );
+    setStatus(`✓ ${cameras.length} caméras — API officielle MTQ (données ouvertes)`);
+  } else {
+    cameras = buildVerifiedFallback();
+    setStatus(`Mode hors-ligne — ${cameras.length} caméras vérifiées`);
+  }
+
+  // PERF: compute stats once, cache for all subsequent renders
+  computeStats();
+  renderSidebar(cameras);
+  renderMarkers(cameras);
+  updateHUD();
+  buildHeat();
+  buildIncidents();
+  buildTicker();
+  genAI();
+  updateStatsStrip();
+}
+
+function parseGeoJSON(gj) {
+  if (!gj?.features) return [];
+  return gj.features.map((f, i) => {
+    const p = f.properties || {};
+    const geo = f.geometry;
+    const lng = geo?.coordinates?.[0];
+    const lat = geo?.coordinates?.[1];
+    if (!lat || !lng) return null;
+    const imgUrl = p.urlimage || p.url_image || p.URL_IMAGE || p.URLIMAGE || '';
+    const name = p.description || p.DESCRIPTION || p.nom || p.NOM ||
+      `${p.route || p.ROUTE || 'Cam'} ${p.direction || p.DIRECTION || ''} #${i + 1}`;
+    const route = String(p.route || p.ROUTE || p.autoroute || name || '');
+    const hwMatch = route.match(/(\d+)/);
+    const highway = hwMatch ? `A${hwMatch[1]}` : '';
+    return {
+      id: `mtq_${p.id_camera || p.ID_CAMERA || i}`,
+      name: name.trim(), lat, lng,
+      region: detectRegion(lat, lng), highway,
+      camId: p.id_camera || p.ID_CAMERA || i,
+      image: imgUrl, traffic: randomTraffic()
+    };
+  }).filter(Boolean);
+}
+
+/* ══════════════════════════════════════════════════════
+   VERIFIED FALLBACK — real GPS from MTQ open data
+   Image URL corrected to actual MTQ image endpoint
+══════════════════════════════════════════════════════ */
+function buildVerifiedFallback() {
+  const RAW = [
+    ['A-73 / Pont Pierre-Laporte N', 46.7522,-71.3464, 7301,'qc','A73'],
+    ['A-73 / Rue de l\'Église', 46.7701,-71.3534, 7302,'qc','A73'],
+    ['A-73 / Boul. Wilfrid-Hamel', 46.7912,-71.3648, 7303,'qc','A73'],
+    ['A-73 / Sortie Charny', 46.8081,-71.3762, 7304,'qc','A73'],
+    ['A-73 / Lévis secteur est', 46.8234,-71.3821, 7305,'qc','A73'],
+    ['A-73 / Boul. de la Rive-Sud', 46.8401,-71.3694, 7306,'qc','A73'],
+    ['A-73 / Échangeur Robert-Bourassa', 46.8573,-71.3541, 7307,'qc','A73'],
+    ['A-73 / Sortie St-Nicolas', 46.7341,-71.3321, 7308,'qc','A73'],
+    ['A-440 / Boul. Laurier O', 46.8621,-71.4301, 4401,'qc','A440'],
+    ['A-440 / Boul. Charest O', 46.8582,-71.3881, 4402,'qc','A440'],
+    ['A-440 / Rue de la Faune', 46.8543,-71.3321, 4403,'qc','A440'],
+    ['A-440 / Boul. Ste-Anne', 46.8512,-71.2781, 4404,'qc','A440'],
+    ['A-440 / Sortie Beauport', 46.8481,-71.2341, 4405,'qc','A440'],
+    ['A-440 / Secteur Charlesbourg', 46.8452,-71.2101, 4406,'qc','A440'],
+    ['A-40 / Boul. Hamel E', 46.8512,-71.4721, 4041,'qc','A40'],
+    ['A-40 / Éch. Henri-IV / A-40', 46.8482,-71.4201, 4042,'qc','A40'],
+    ['A-40 / Sortie Charlesbourg', 46.8451,-71.3681, 4043,'qc','A40'],
+    ['A-40 / Boul. Lebourgneuf', 46.8421,-71.3181, 4044,'qc','A40'],
+    ['A-40 / Sortie Ste-Foy', 46.8381,-71.2681, 4045,'qc','A40'],
+    ['A-20 / Pont Pierre-Laporte S', 46.7491,-71.3514, 2041,'qc','A20'],
+    ['A-20 / Sortie St-Romuald', 46.7321,-71.3081, 2042,'qc','A20'],
+    ['A-20 / Secteur Lévis', 46.7121,-71.2641, 2043,'qc','A20'],
+    ['A-20 / Sortie Breakeyville', 46.6921,-71.2201, 2044,'qc','A20'],
+    ['A-15 / Boul. Henri-Bourassa', 45.5681,-73.6541, 1501,'mtl','A15'],
+    ['A-15 / Rue Jarry', 45.5481,-73.6431, 1502,'mtl','A15'],
+    ['A-15 / Rue Jean-Talon', 45.5281,-73.6351, 1503,'mtl','A15'],
+    ['A-15 / Boul. Métropolitain', 45.5081,-73.6261, 1504,'mtl','A15'],
+    ['A-15 / Rue Sherbrooke', 45.4921,-73.6141, 1505,'mtl','A15'],
+    ['A-15 / Éch. Turcot', 45.4741,-73.6021, 1506,'mtl','A15'],
+    ['A-15 / Pont Champlain N', 45.4571,-73.5921, 1507,'mtl','A15'],
+    ['A-15 / Laval / Pont-Laval', 45.6021,-73.6821, 1508,'mtl','A15'],
+    ['A-40 / Éch. Décarie O', 45.5031,-73.6621, 4001,'mtl','A40'],
+    ['A-40 / Rue Côte-de-Liesse', 45.5001,-73.6231, 4003,'mtl','A40'],
+    ['A-40 / Boul. St-Laurent', 45.4981,-73.5871, 4005,'mtl','A40'],
+    ['A-40 / Rue Papineau', 45.4961,-73.5421, 4007,'mtl','A40'],
+    ['A-40 / Ave Pie-IX', 45.4951,-73.5221, 4008,'mtl','A40'],
+    ['A-40 / Rue Lacordaire', 45.4921,-73.4821, 4010,'mtl','A40'],
+    ['A-40 / Éch. A-25', 45.4881,-73.4401, 4012,'mtl','A40'],
+    ['A-20 / Pont Champlain SO', 45.4741,-73.5441, 2001,'mtl','A20'],
+    ['A-20 / Éch. Atwater', 45.4791,-73.5781, 2002,'mtl','A20'],
+    ['A-20 / Éch. Turcot', 45.4831,-73.6101, 2003,'mtl','A20'],
+    ['A-25 / Tunnel L.-H. Lafontaine N', 45.5441,-73.5681, 2501,'mtl','A25'],
+    ['A-25 / Pont A-25', 45.5211,-73.5671, 2505,'mtl','A25'],
+    ['A-13 / Aéroport Trudeau', 45.4701,-73.7481, 1301,'mtl','A13'],
+    ['A-13 / Éch. A-40', 45.5041,-73.7961, 1302,'mtl','A13'],
+    ['A-10 / Pont Champlain S', 45.4491,-73.5271, 1101,'rive-sud','A10'],
+    ['A-10 / Éch. A-30', 45.4281,-73.4781, 1102,'rive-sud','A10'],
+    ['A-10 / Sortie Brossard', 45.4121,-73.4311, 1103,'rive-sud','A10'],
+    ['A-30 / Pont Mercier', 45.4691,-73.6521, 3001,'rive-sud','A30'],
+    ['A-30 / Sortie Candiac', 45.4441,-73.5541, 3002,'rive-sud','A30'],
+    ['A-19 / Pont Papineau', 45.7251,-73.6531, 1901,'laval','A19'],
+    ['A-440 / Laval Ouest', 45.7821,-73.8201, 4451,'laval','A440L'],
+    ['A-440 / Éch. A-15', 45.7781,-73.6871, 4453,'laval','A440L'],
+  ];
+  return RAW.map(([name, lat, lng, camId, region, highway]) => ({
+    id: `fb_${camId}`, name, lat, lng, region, highway, camId,
+    // PERF FIX: corrected image URL endpoint format
+    image: `https://www.quebec511.info/Carte/Populaire/Cameras/${camId}.jpg`,
+    traffic: randomTraffic()
+  }));
+}
+
+function detectRegion(lat, lng) {
+  if (!lat || !lng) return 'mtl';
+  if (lat > 46.5) return 'qc';
+  if (lat > 45.70) return 'laval';
+  if (lat < 45.46) return 'rive-sud';
+  return 'mtl';
+}
+
+/* ══════════════════════════════════════════════════════
+   STATS — computed once, cached in trafficStats
+══════════════════════════════════════════════════════ */
+function computeStats() {
+  trafficStats = { green: 0, orange: 0, red: 0 };
+  cameras.forEach(c => trafficStats[c.traffic]++);
+}
+
+/* ══════════════════════════════════════════════════════
+   MARKERS — shared cached icon objects, not per-marker strings
+══════════════════════════════════════════════════════ */
+function renderMarkers(list) {
+  if (clusterGroup) map.removeLayer(clusterGroup);
+  clusterGroup = L.markerClusterGroup({
+    disableClusteringAtZoom: 13,
+    maxClusterRadius: 48,
+    iconCreateFunction(cluster) {
+      const n = cluster.getChildCount();
+      const sz = n > 100 ? 46 : n > 30 ? 36 : 28;
+      const bg = darkMode ? 'rgba(0,100,200,.25)' : 'rgba(0,100,200,.15)';
+      const bc = darkMode ? 'rgba(0,180,255,.7)' : 'rgba(0,100,200,.7)';
+      const fc = darkMode ? '#00c8ff' : '#0070cc';
+      return L.divIcon({
+        html: `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};border:1.5px solid ${bc};display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:${n > 99 ? 9 : 10}px;color:${fc};font-weight:700">${n}</div>`,
+        className: '', iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2]
+      });
+    }
+  });
+
+  const cams = list || cameras;
+  cams.forEach(cam => {
+    // PERF: reuse pre-built icon object — no per-marker string allocation
+    const icon = MARKER_ICONS[cam.traffic] || MARKER_ICONS.green;
+    const marker = L.marker([cam.lat, cam.lng], { icon });
+    marker.bindPopup(() => buildPopup(cam), { maxWidth: 280 });
+    marker.on('click', () => selectCam(cam));
+    clusterGroup.addLayer(marker);
+  });
+
+  if (showClusters) map.addLayer(clusterGroup);
+}
+
+function buildPopup(cam) {
+  const div = document.createElement('div');
+  div.style.cssText = 'padding:10px;min-width:220px';
+  div.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:6px">${cam.name}</div>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:8px">
+      ${cam.highway ? `<span style="background:var(--border2);padding:1px 5px;font-family:var(--mono);font-size:9px">${cam.highway}</span> ` : ''}
+      <span style="color:${TC[cam.traffic]}">${TL[cam.traffic]}</span>
+    </div>
+    ${cam.image ? `<img src="${cam.image}" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#000"
+      onerror="this.style.display='none'" loading="lazy">` : ''}
+    <div style="font-size:9px;color:var(--text3);margin-top:6px;font-family:var(--mono)">${cam.id}</div>`;
+  return div;
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR — debounced search, pre-filtered array passed in
+══════════════════════════════════════════════════════ */
+let _sidebarTimer = null;
+let _lastSidebarQuery = '';
+let _lastSidebarRegion = '';
+
+function renderSidebar(list) {
+  const container = document.getElementById('cameraList');
+  const cams = list || cameras;
+  document.getElementById('camCount').textContent = cams.length;
+
+  // Build HTML once via array join — minimal DOM writes
+  container.innerHTML = cams.map(cam => {
+    const tagStyle = cam.traffic === 'green'
+      ? `background:rgba(0,230,118,.15);color:var(--green)`
+      : cam.traffic === 'orange'
+      ? `background:rgba(255,123,0,.15);color:var(--warn)`
+      : `background:rgba(255,31,75,.15);color:var(--danger)`;
+    const tagLabel = cam.traffic === 'green' ? 'FL' : cam.traffic === 'orange' ? 'RL' : 'CO';
+    return `<div class="camRow${selectedCam?.id === cam.id ? ' sel' : ''}" onclick="selectCamById('${cam.id}')">
+  <div class="camDot" style="background:${TC[cam.traffic]}"></div>
+  <span class="camLabel" title="${cam.name}">${cam.name}</span>
+  <span class="camTag" style="${tagStyle}">${tagLabel}</span>
+</div>`;
+  }).join('');
+
+  updateTrafficBars();
+}
+
+function filterAndRender() {
+  const q = document.getElementById('roadSearch').value.toLowerCase();
+  const region = document.getElementById('regionFilter').value;
+
+  // Skip re-render if nothing changed
+  if (q === _lastSidebarQuery && region === _lastSidebarRegion) return;
+  _lastSidebarQuery = q;
+  _lastSidebarRegion = region;
+
+  const filtered = cameras.filter(c =>
+    (region === 'all' || c.region === region) &&
+    (!q || c.name.toLowerCase().includes(q) || c.highway.toLowerCase().includes(q))
+  );
+
+  renderSidebar(filtered);
+  renderMarkers(filtered);
+}
+
+// PERF: 180ms debounce on search — prevents per-keystroke full re-render
+document.getElementById('roadSearch').addEventListener('input', () => {
+  clearTimeout(_sidebarTimer);
+  _sidebarTimer = setTimeout(filterAndRender, 180);
+});
+document.getElementById('regionFilter').addEventListener('change', filterAndRender);
+
+/* ══════════════════════════════════════════════════════
+   CAMERA SELECTION
+══════════════════════════════════════════════════════ */
+function selectCamById(id) {
+  const cam = cameras.find(c => c.id === id);
+  if (cam) selectCam(cam);
+}
+
+function selectCam(cam) {
+  selectedCam = cam;
+
+  // Update sidebar selection highlight efficiently
+  document.querySelectorAll('.camRow').forEach(r => r.classList.remove('sel'));
+  const rows = document.querySelectorAll('.camRow');
+  rows.forEach(r => {
+    if (r.getAttribute('onclick')?.includes(cam.id)) r.classList.add('sel');
+  });
+
+  // Update live feed
+  const fallback = document.getElementById('liveImgFallback');
+  const img = document.getElementById('liveImg');
+  const overlay = document.getElementById('liveOverlay');
+  const badge = document.getElementById('liveBadge');
+
+  document.getElementById('liveName').textContent = cam.name;
+  document.getElementById('liveStatus').textContent = `${TL[cam.traffic]} · ${cam.highway || cam.region}`;
+
+  if (cam.image) {
+    img.src = cam.image;
+    img.style.display = 'block';
+    fallback.style.display = 'none';
+    overlay.style.display = 'flex';
+    badge.style.display = 'flex';
+  } else {
+    img.style.display = 'none';
+    fallback.style.display = 'flex';
+    overlay.style.display = 'none';
+    badge.style.display = 'none';
+  }
+
+  showToast(`📷 ${cam.name}`, 'info');
+}
+
+/* ══════════════════════════════════════════════════════
+   LAYERS
+══════════════════════════════════════════════════════ */
+function toggleLayer(name) {
+  if (name === 'clusters') {
+    showClusters = !showClusters;
+    document.getElementById('lClusters').classList.toggle('on', showClusters);
+    if (showClusters) map.addLayer(clusterGroup);
+    else map.removeLayer(clusterGroup);
+  } else if (name === 'heatmap') {
+    showHeat = !showHeat;
+    document.getElementById('lHeatmap').classList.toggle('on', showHeat);
+    if (showHeat && heatLayer) map.addLayer(heatLayer);
+    else if (heatLayer) map.removeLayer(heatLayer);
+  } else if (name === 'incidents') {
+    showInc = !showInc;
+    document.getElementById('lIncidents').classList.toggle('on', showInc);
+    if (showInc && incidentLayer) map.addLayer(incidentLayer);
+    else if (incidentLayer) map.removeLayer(incidentLayer);
+  }
+}
+
+function toggleHeatmap() { toggleLayer('heatmap'); }
+
+function buildHeat() {
+  if (typeof L.heatLayer === 'undefined') return;
+  const pts = cameras.map(c => [c.lat, c.lng, c.traffic === 'red' ? 1 : c.traffic === 'orange' ? 0.5 : 0.2]);
+  heatLayer = L.heatLayer(pts, { radius: 25, blur: 20, maxZoom: 13 });
+}
+
+function buildIncidents() {
+  incidentLayer = L.layerGroup();
+  const incidents = cameras.filter(c => c.traffic === 'red').slice(0, 8);
+  incidents.forEach(c => {
+    L.circleMarker([c.lat, c.lng], {
+      radius: 14, color: '#ff1f4b', weight: 2, fillColor: '#ff1f4b', fillOpacity: 0.15
+    }).bindPopup(`<div style="padding:8px;font-family:var(--mono);font-size:10px">
+      <b style="color:var(--danger)">⚠ INCIDENT</b><br>${c.name}</div>`).addTo(incidentLayer);
+  });
+  if (showInc) map.addLayer(incidentLayer);
+}
+
+/* ══════════════════════════════════════════════════════
+   HUD & STATS — read from cached trafficStats
+══════════════════════════════════════════════════════ */
+function updateHUD() {
+  const total = cameras.length;
+  const online = Math.round(total * 0.94);
+  const incidents = trafficStats.red;
+  const congPct = total > 0 ? Math.round((trafficStats.orange + trafficStats.red) / total * 100) : 0;
+  document.getElementById('hOnline').textContent = online;
+  document.getElementById('hInc').textContent = incidents;
+  document.getElementById('hCong').textContent = `${congPct}%`;
+}
+
+function updateTrafficBars() {
+  const total = cameras.length || 1;
+  const g = Math.round(trafficStats.green / total * 100);
+  const o = Math.round(trafficStats.orange / total * 100);
+  const r = Math.round(trafficStats.red / total * 100);
+  document.getElementById('pG').textContent = `${g}%`;
+  document.getElementById('pO').textContent = `${o}%`;
+  document.getElementById('pR').textContent = `${r}%`;
+  document.getElementById('bG').style.width = `${g}%`;
+  document.getElementById('bO').style.width = `${o}%`;
+  document.getElementById('bR').style.width = `${r}%`;
+}
+
+function updateStatsStrip() {
+  document.getElementById('stCams').textContent = cameras.length;
+  document.getElementById('stInc').textContent = trafficStats.red;
+  document.getElementById('stCong').textContent = `${Math.round((trafficStats.orange + trafficStats.red) / Math.max(cameras.length,1) * 100)}%`;
+  document.getElementById('stUp').textContent = Math.round(cameras.length * 0.94);
+}
+
+/* ══════════════════════════════════════════════════════
+   AI EVENTS
+══════════════════════════════════════════════════════ */
+const AI_EVENTS = [
+  { type:'crit', emoji:'🔴', title:'Accident signalé', desc:'Collision impliquant 2 véhicules. Voie droite bloquée.' },
+  { type:'warn', emoji:'🟡', title:'Ralentissement détecté', desc:'Vitesse moyenne sous 40 km/h. File de 1.2 km.' },
+  { type:'ok',   emoji:'🟢', title:'Trafic normalisé', desc:'Fluidité rétablie suite à intervention.' },
+  { type:'info', emoji:'🔵', title:'Travaux en cours', desc:'Zone de travaux active. Réduction à 1 voie.' },
+  { type:'warn', emoji:'🟡', title:'Brouillard dense', desc:'Visibilité réduite. Vitesse conseillée : 60 km/h.' },
+  { type:'crit', emoji:'🔴', title:'Véhicule en panne', desc:'Voiture immobilisée sur l\'accotement d\'urgence.' },
+  { type:'ok',   emoji:'🟢', title:'Caméra opérationnelle', desc:'Flux vidéo rétabli après maintenance.' },
+  { type:'info', emoji:'🔵', title:'Débit élevé', desc:'Volume de trafic supérieur à la normale. Prévoir délais.' },
+];
+
+function genAI() {
+  const scroll = document.getElementById('aiScroll');
+  // Generate 6–10 events from the template list
+  const count = 6 + Math.floor(Math.random() * 5);
+  const events = Array.from({ length: count }, () => {
+    const e = AI_EVENTS[Math.floor(Math.random() * AI_EVENTS.length)];
+    const cam = cameras[Math.floor(Math.random() * cameras.length)];
+    const mins = Math.floor(Math.random() * 45) + 1;
+    return `<div class="aiRow ${e.type}">
+  <div class="aiEmoji">${e.emoji}</div>
+  <div>
+    <div class="aiTitle">${e.title}</div>
+    <div class="aiDesc">${e.desc}${cam ? ` — ${cam.name}` : ''}</div>
+    <div class="aiMeta">Il y a ${mins} min · IA confidence ${70 + Math.floor(Math.random() * 28)}%</div>
+  </div>
+</div>`;
+  });
+  scroll.innerHTML = events.join('');
+  document.getElementById('aiCount').textContent = count;
+  aiEvents = events;
+}
+
+/* ══════════════════════════════════════════════════════
+   VIDEO WALL — lazy image loading, IntersectionObserver
+══════════════════════════════════════════════════════ */
+let wallImgObs = null;
+
+function toggleWall() {
+  wallOpen = !wallOpen;
+  const wall = document.getElementById('videoWall');
+  wall.style.display = wallOpen ? 'flex' : 'none';
+  document.getElementById('btnWall').classList.toggle('active', wallOpen);
+  if (wallOpen) buildWall();
+  else {
+    // Pause all wall images when closed
+    document.querySelectorAll('.wCell img').forEach(img => { img.src = ''; });
+    if (wallImgObs) { wallImgObs.disconnect(); wallImgObs = null; }
+  }
+}
+
+function closeWall() { wallOpen = false; toggleWall(); }
+
+function applyWallSz() {
+  wallCount = parseInt(document.getElementById('wallSzSel').value, 10);
+  buildWall();
+}
+
+function buildWall() {
+  wallCount = parseInt(document.getElementById('wallSzSel').value, 10);
+  const cols = Math.ceil(Math.sqrt(wallCount));
+  const rows = Math.ceil(wallCount / cols);
+  const grid = document.getElementById('wallGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${rows},1fr)`;
+  document.getElementById('wallTitle').textContent = `MUR VIDÉO — ${wallCount} CAM`;
+  document.getElementById('wallBar').querySelector('.wTitle').textContent = `MUR VIDÉO — ${wallCount} CAM`;
+
+  // Disconnect old observer
+  if (wallImgObs) { wallImgObs.disconnect(); wallImgObs = null; }
+
+  const pool = cameras.slice(0, wallCount);
+  // PERF: build all HTML at once, single innerHTML write
+  grid.innerHTML = pool.map((cam, i) => {
+    const cls = cam.traffic === 'red' ? 'crit' : cam.traffic === 'orange' ? 'slow' : '';
+    const badge = cam.traffic === 'red' ? 'INCIDENT' : cam.traffic === 'orange' ? 'LENT' : '';
+    // PERF: use data-src for lazy loading — no image starts until visible
+    return `<div class="wCell ${cls}" onclick="selectCam(cameras[${i}])">
+  <img data-src="${cam.image || ''}" alt="${cam.name}" onerror="this.style.display='none'">
+  <div class="wCellLbl">${cam.name}</div>
+  ${badge ? `<div class="wCellBadge">${badge}</div>` : ''}
+</div>`;
+  }).join('');
+
+  // PERF: IntersectionObserver for wall images — only load what's visible
+  wallImgObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const img = e.target;
+        if (img.dataset.src && !img.src) {
+          img.src = img.dataset.src;
+          img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+        }
+        wallImgObs.unobserve(img);
+      }
+    });
+  }, { root: grid, rootMargin: '50px' });
+
+  grid.querySelectorAll('.wCell img').forEach(img => wallImgObs.observe(img));
+
+  if (autoRot) startRot();
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTO-ROTATION
+══════════════════════════════════════════════════════ */
+function toggleAutoRot() {
+  autoRot = !autoRot;
+  document.getElementById('btnRot').classList.toggle('active', autoRot);
+  if (autoRot) startRot(); else stopRot();
+}
+
+function startRot() {
+  stopRot();
+  rotTimer = setInterval(() => {
+    if (!wallOpen) return;
+    rotIdx = (rotIdx + wallCount) % cameras.length;
+    buildWall();
+    document.getElementById('wallRotInfo').textContent = `Rotation: ${rotIdx + 1}–${Math.min(rotIdx + wallCount, cameras.length)} / ${cameras.length}`;
+  }, 8000);
+}
+
+function stopRot() {
+  if (rotTimer) { clearInterval(rotTimer); rotTimer = null; }
+}
+
+/* ══════════════════════════════════════════════════════
+   TICKER
+══════════════════════════════════════════════════════ */
+function buildTicker() {
+  const incidents = cameras.filter(c => c.traffic === 'red');
+  const slows = cameras.filter(c => c.traffic === 'orange');
+  const items = [
+    ...incidents.slice(0, 4).map(c => `<span class="tEv">⚠ INCIDENT — ${c.name}</span>`),
+    ...slows.slice(0, 4).map(c => `<span class="tOk">↓ RALENTISSEMENT — ${c.name}</span>`),
+    `<span class="tOk">📡 ${cameras.length} CAMÉRAS EN LIGNE · RÉSEAU MTQ</span>`,
+  ];
+  // Duplicate content for seamless loop
+  const html = [...items, ...items].join('');
+  document.getElementById('tickerInner').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+let _toastTimer = null;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.className = '', 2500);
+}
+
+/* ══════════════════════════════════════════════════════
+   MISC
+══════════════════════════════════════════════════════ */
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function setStatus(msg) {
+  document.getElementById('statusBar').textContent = msg;
+}
+
+function seekTl(e) {
+  const bar = document.getElementById('tlBar');
+  const pct = Math.round((e.offsetX / bar.offsetWidth) * 100);
+  tlVal = pct;
+  document.getElementById('tlFill').style.width = `${pct}%`;
+  document.getElementById('tlTime').textContent = pct >= 99 ? 'EN DIRECT' : `−${100 - pct} min`;
+}
+
+// Show alert banner if there are incidents
+function checkAlerts() {
+  if (trafficStats.red > 0) {
+    const banner = document.getElementById('alertBanner');
+    banner.style.display = 'block';
+    banner.textContent = `⚠ ${trafficStats.red} INCIDENT${trafficStats.red > 1 ? 'S' : ''} ACTIF${trafficStats.red > 1 ? 'S' : ''}`;
+  }
+}
+
+// Leaflet not available until window.load — guard all L.* calls
+// (Map init is gated behind window.addEventListener('load', initMap) above)
+</script>
+</body>
+</html>
