@@ -576,8 +576,10 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
     <li><a href="#" onclick="showPage('scanners')"    id="nav-scanners"    data-en="Scanners"     data-fr="Scanners">Scanners</a></li>
     <li><a href="#" onclick="showPage('frequencies')" id="nav-frequencies" data-en="Frequencies"  data-fr="Fréquences">Frequencies</a></li>
     <li><a href="#" onclick="showPage('cameras')"     id="nav-cameras"     data-en="MTQ Cameras"  data-fr="Caméras MTQ">MTQ Cameras</a></li>
+    <li><a href="#" onclick="showPage('mtqops')"      id="nav-mtqops"      data-en="MTQ Ops Center" data-fr="Centre Ops MTQ">MTQ Ops Center</a></li>
     <li><a href="#" onclick="showPage('webcams')"     id="nav-webcams"     data-en="Webcams"       data-fr="Webcams">Webcams</a></li>
     <li><a href="#" onclick="showPage('scanner')"     id="nav-scanner"     data-en="Live Scanner"  data-fr="Scanner Live">Live Scanner</a></li>
+    <li><a href="#" onclick="showPage('livesdr')"     id="nav-livesdr"     data-en="Live SDR"      data-fr="Live SDR">Live SDR</a></li>
     <li><a href="#" onclick="showPage('amateur')"    id="nav-amateur"     data-en="Amateur Radio"  data-fr="Radioamateur">Amateur Radio</a></li>
     <li><a href="#" onclick="showPage('coolstuff')"   id="nav-coolstuff"   data-en="Cool Stuff"   data-fr="Liens Cool">Cool Stuff</a></li>
     <li><a href="#" onclick="showPage('digital')"     id="nav-digital"     data-en="Digital Modes" data-fr="Modes Numériques">Modes Numériques</a></li>
@@ -800,6 +802,17 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
     data-src="cameras.html"
     style="width:100%;height:calc(100vh - 56px);border:none;display:block;margin-top:56px"
     title="Caméras MTQ — ScanQC"
+    allow="autoplay">
+  </iframe>
+</div>
+
+<!-- MTQ OPS CENTER -->
+<div id="page-mtqops" class="page">
+  <iframe
+    id="iframe-mtqops"
+    data-src="mtq_ops_center_v5.html"
+    style="width:100%;height:calc(100vh - 56px);border:none;display:block;margin-top:56px"
+    title="MTQ Ops Center — ScanQC"
     allow="autoplay">
   </iframe>
 </div>
@@ -1376,6 +1389,41 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
 </section>
 </div>
 
+<!-- LIVE SDR -->
+<div id="page-livesdr" class="page">
+<section id="livesdr" style="padding-top:6rem;padding-bottom:3rem;">
+  <p class="section-tag" data-en="Browser SDR" data-fr="SDR Navigateur">Browser SDR</p>
+  <h2 data-en='Live <span style="color:var(--green)">SDR</span>' data-fr='Live <span style="color:var(--green)">SDR</span>'>Live <span style="color:var(--green)">SDR</span></h2>
+  <p class="section-lead" data-en="Integrated BrowSDR-style access for browser-based SDR reception. Best experience in Chrome or Edge on HTTPS with WebUSB support. Connect compatible hardware, then tune directly from the browser." data-fr="Accès intégré de style BrowSDR pour la réception SDR dans le navigateur. Meilleure expérience avec Chrome ou Edge en HTTPS et support WebUSB. Connectez un matériel compatible puis syntonisez directement depuis le navigateur.">Accès intégré de style BrowSDR pour la réception SDR dans le navigateur. Meilleure expérience avec Chrome ou Edge en HTTPS et support WebUSB. Connectez un matériel compatible puis syntonisez directement depuis le navigateur.</p>
+
+  <div class="stream-panel" style="display:block">
+    <div class="stream-panel-header">
+      <span class="stream-panel-title">BrowSDR — Web-Based SDR Receiver</span>
+      <div class="stream-panel-actions">
+        <span class="stream-note" style="color:var(--green)" data-en="● Chrome / Edge + HTTPS + WebUSB recommended" data-fr="● Chrome / Edge + HTTPS + WebUSB recommandé">● Chrome / Edge + HTTPS + WebUSB recommandé</span>
+        <a href="https://github.com/jLynx/BrowSDR" target="_blank" class="stream-ext-link">GitHub ↗</a>
+        <a href="https://browsdr.jlynx.net" target="_blank" class="stream-ext-link">Open direct ↗</a>
+      </div>
+    </div>
+    <div style="padding:0.9rem 1.2rem;background:var(--deep);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);line-height:1.7">
+      <span data-en="BrowSDR is a HackRF-oriented, browser SDR project built with Rust, WebAssembly, WebGL, Web Workers, TypeScript, Vue 3, and WebUSB. It supports multiple VFOs, waterfall/spectrum, WFM/NFM/AM/USB/LSB/CW and more." data-fr="BrowSDR est un projet SDR navigateur orienté HackRF, construit avec Rust, WebAssembly, WebGL, Web Workers, TypeScript, Vue 3 et WebUSB. Il supporte plusieurs VFO, waterfall/spectre, WFM/NFM/AM/USB/LSB/CW et plus.">BrowSDR est un projet SDR navigateur orienté HackRF, construit avec Rust, WebAssembly, WebGL, Web Workers, TypeScript, Vue 3 et WebUSB. Il supporte plusieurs VFO, waterfall/spectre, WFM/NFM/AM/USB/LSB/CW et plus.</span>
+    </div>
+    <div class="stream-frame-wrap" style="height:calc(100vh - 250px);min-height:620px">
+      <iframe
+        id="iframe-livesdr"
+        data-src="https://browsdr.jlynx.net"
+        src=""
+        title="Live SDR — BrowSDR"
+        allow="autoplay; microphone; usb; fullscreen"
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-presentation">
+      </iframe>
+    </div>
+  </div>
+</section>
+</div>
+
+
 <footer>
   <span>ScanQC — Québec, Québec</span>
   <span style="font-family:var(--mono);font-size:0.6rem;color:rgba(106,138,122,0.5);text-align:center;">MONITORING 24/7 · VHF/UHF/SHF · P25·DMR·NXDN</span>
@@ -1600,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', updateLatcStatus);
   <div class="about-grid">
     <div class="about-block">
       <p data-en="Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story." data-fr="La surveillance radio est bien plus qu'un passe-temps — c'est une fenêtre sur l'infrastructure invisible qui fait fonctionner une ville. Des systèmes trunk chiffrés des services d'urgence de Montréal au bavardage analogique brut des centres de répartition ferroviaire, chaque fréquence raconte une histoire.">Radio scanning is more than a hobby — it's a window into the invisible infrastructure that keeps a city running. From the encrypted trunked systems of Montréal's emergency services to the raw analog chatter of rail dispatch, every frequency tells a story.</p>
-      <p data-en="Based in Quebec city, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Montréal, Québec, ma configuration de surveillance couvre les services d'urgence VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
+      <p data-en="Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor." data-fr="Basé à Montréal, Québec, ma configuration de surveillance couvre les services d'urgence VHF/UHF, les communications aériennes (ADS-B + voix), les voies maritimes, ferroviaires et gouvernementales. La SDR a transformé ce qui est possible pour le passionné de radio.">Based in Montréal, Québec, my monitoring setup covers VHF/UHF emergency services, aircraft communications (ADS-B + voice), maritime, rail, and government channels. SDR has transformed what's possible for the passionate radio monitor.</p>
       <p data-en="The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying." data-fr="Le réseau de caméras MTQ est un complément fascinant à la surveillance radio — quand vous entendez un incident sur le scanner, vous pouvez souvent afficher la caméra de circulation la plus proche pour voir les conditions réelles. Cette synthèse de surveillance audio et de confirmation visuelle est singulièrement satisfaisante.">The MTQ camera network is a fascinating complement to radio monitoring — when you hear an incident on scanner, you can often pull up the nearest traffic camera to see real-world conditions. That synthesis of audio monitoring and visual confirmation is uniquely satisfying.</p>
       <p data-en="This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network." data-fr="Ce site sert de référence pour les passionnés de la région du Québec — listes de fréquences, revues d'équipements et accès au réseau de caméras MTQ.">This site serves as a reference for fellow enthusiasts in the Québec region — frequency lists, gear reviews, and access to the MTQ camera network.</p>
       <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;">
@@ -1801,6 +1849,20 @@ function showPage(id) {
       const t = document.documentElement.getAttribute('data-theme');
       fr.contentDocument && fr.contentDocument.documentElement.setAttribute('data-theme', t||'');
     } catch(e) {}
+  }
+  if (id==='mtqops') {
+    const fr = document.getElementById('iframe-mtqops');
+    if (fr && !fr.dataset.loaded) {
+      fr.src = fr.dataset.src;
+      fr.dataset.loaded = '1';
+    }
+  }
+  if (id==='livesdr') {
+    const fr = document.getElementById('iframe-livesdr');
+    if (fr && !fr.dataset.loaded) {
+      fr.src = fr.dataset.src;
+      fr.dataset.loaded = '1';
+    }
   }
 }
 
