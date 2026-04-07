@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caméras MTQ — ScanQC</title>
+<!-- PERF: async font load — never blocks first paint -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap"></noscript>
+<style>
+:root{
+  --black:#080c0a;--deep:#0a1210;--panel:#0f1a16;--card:#121f1a;--border:#1e3028;
+  --green:#00ff88;--green-dim:#00c866;--green-faint:rgba(0,255,136,0.07);--green-glow:rgba(0,255,136,0.18);
+  --amber:#ffaa00;--red:#ff3344;--cyan:#00e5ff;
+  --text:#c8ddd5;--text-dim:#6a8a7a;
+  --mono:'Share Tech Mono',monospace;--cond:'Barlow Condensed',sans-serif;--body:'Barlow',sans-serif;
+}
+[data-theme="light"]{
+  --black:#ffffff;--deep:#f5f7f6;--panel:#eef2f0;--card:#e8edeb;--border:#c8d8d2;
+  --green:#00994d;--green-dim:#007a3d;--green-faint:rgba(0,153,77,0.09);
+  --amber:#b37400;--red:#cc1122;--text:#111c17;--text-dim:#3d5c4e;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--black);color:var(--text);font-family:var(--body);min-height:100%}
+
+/* ── TOOLBAR ─────────────────────────────────────────────────── */
+.toolbar{position:sticky;top:0;z-index:100;background:rgba(8,12,10,0.96);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+  padding:0.5rem 0.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+[data-theme="light"] .toolbar{background:rgba(255,255,255,0.96)}
+.fbtn{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  padding:0.28rem 0.65rem;background:transparent;border:1px solid var(--border);
+  color:var(--text-dim);cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+.fbtn:hover{color:var(--green);border-color:rgba(0,255,136,0.3)}
+.fbtn.active{background:var(--green-faint);color:var(--green);border-color:rgba(0,255,136,0.4)}
+.toolbar-right{margin-left:auto;display:flex;align-items:center;gap:0.5rem;flex-shrink:0}
+.cam-count{font-family:var(--mono);font-size:0.58rem;color:var(--text-dim)}
+.rbtn{font-family:var(--mono);font-size:0.6rem;padding:0.28rem 0.7rem;background:transparent;
+  border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:.15s}
+.rbtn:hover{color:var(--green);border-color:var(--green)}
+
+/* PERF: Ops link — static SVG thumbnail, eliminates recursive iframe load of entire app */
+.ops-link{display:flex;align-items:center;gap:0.45rem;text-decoration:none;
+  border:1px solid rgba(0,255,136,0.25);padding:0.22rem 0.55rem 0.22rem 0.3rem;
+  background:var(--green-faint);transition:all .18s;flex-shrink:0}
+.ops-link:hover{border-color:var(--green);background:rgba(0,255,136,0.12)}
+.ops-thumb{width:38px;height:22px;border:1px solid rgba(0,255,136,0.2);
+  overflow:hidden;position:relative;background:var(--deep);flex-shrink:0;border-radius:1px}
+.ops-label{display:flex;flex-direction:column;line-height:1.2}
+.ops-label .ol-top{font-family:var(--mono);font-size:0.58rem;color:var(--green);
+  letter-spacing:0.1em;text-transform:uppercase;font-weight:700}
+.ops-label .ol-sub{font-family:var(--mono);font-size:0.5rem;color:var(--text-dim);letter-spacing:0.06em}
+
+/* ── SUB-BAR ─────────────────────────────────────────────────── */
+.sub-bar{background:var(--deep);border-bottom:1px solid var(--border);
+  padding:0.35rem 0.8rem;display:none;flex-wrap:wrap;gap:3px}
+.sub-bar.on{display:flex}
+
+/* ── STATUS ──────────────────────────────────────────────────── */
+.status{padding:0.3rem 0.8rem;background:var(--deep);border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:0.58rem;color:var(--text-dim);
+  display:flex;align-items:center;gap:0.6rem}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 5px var(--green);flex-shrink:0;animation:sdotpulse 1.8s ease-in-out infinite}
+@keyframes sdotpulse{0%,100%{opacity:1}50%{opacity:0.35}}
+
+/* ── GRID ────────────────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:1px;background:var(--border)}
+/* Cap at 5 columns regardless of screen width */
+@media (min-width:1060px){.grid{grid-template-columns:repeat(5,1fr)}}
+@media (min-width:860px) and (max-width:1059px){.grid{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:640px) and (max-width:859px) {.grid{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:420px) and (max-width:639px) {.grid{grid-template-columns:repeat(2,1fr)}}
+.sec-hdr{grid-column:1/-1;font-family:var(--cond);font-size:0.85rem;font-weight:700;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--green);
+  padding:0.6rem 0.8rem 0.3rem;border-bottom:1px solid var(--border);background:var(--deep)}
+
+/* ── CAMERA CARD ─────────────────────────────────────────────── */
+.cam-card{background:var(--card);cursor:pointer;border:1px solid transparent;
+  transition:border-color .15s}
+.cam-card:hover{border-color:var(--green-dim)}
+[data-theme="light"] .cam-card{background:#fff}
+
+/* Video viewport */
+.vp{position:relative;aspect-ratio:16/9;background:#050d09;overflow:hidden}
+
+/* PERF: video hidden until stream starts — avoids layout shift flash */
+.vp video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transition:opacity .4s;
+  /* contain: paint prevents offscreen compositing */
+  contain:paint;
+}
+.vp video.playing{opacity:1}
+
+/* Placeholder shown until video plays */
+.cam-ph{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:0.4rem;color:var(--text-dim);
+  font-family:var(--mono);font-size:0.52rem;letter-spacing:0.08em;
+  pointer-events:none;transition:opacity .3s;
+}
+.cam-ph.hidden{opacity:0}
+.cam-ph svg{opacity:0.2}
+
+.vp-overlay{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;
+  padding:0.3rem 0.45rem;background:linear-gradient(to bottom,rgba(0,0,0,0.5),transparent);
+  pointer-events:none}
+.live{font-family:var(--mono);font-size:0.5rem;letter-spacing:0.12em;color:#fff;
+  display:flex;align-items:center;gap:0.25rem}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:sdotpulse 1.8s ease-in-out infinite}
+.cam-ts{position:absolute;bottom:0;right:0;font-family:var(--mono);font-size:0.48rem;
+  color:rgba(255,255,255,0.45);background:rgba(0,0,0,0.45);padding:0.1rem 0.35rem}
+
+.cam-info{padding:0.4rem 0.6rem;display:flex;flex-direction:column;gap:0.1rem}
+.cam-name{font-size:0.75rem;color:var(--text);line-height:1.25}
+.cam-foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.52rem}
+.cam-reg{color:var(--green-dim)}
+.cam-id{color:rgba(106,138,122,0.4)}
+
+/* ── MODAL ───────────────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.93);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--panel);border:1px solid var(--border);max-width:800px;width:100%;
+  transform:translateY(8px);transition:transform .22s}
+.modal-bg.open .modal{transform:none}
+[data-theme="light"] .modal{background:#fff}
+.mhdr{display:flex;align-items:center;justify-content:space-between;
+  padding:0.6rem 0.9rem;border-bottom:1px solid var(--border);background:var(--card)}
+[data-theme="light"] .mhdr{background:#f5f7f6}
+.mhdr-title{font-family:var(--cond);font-size:0.95rem;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;color:#fff}
+[data-theme="light"] .mhdr-title{color:#111}
+.mclose{background:none;border:none;color:var(--text-dim);font-size:1rem;
+  cursor:pointer;padding:0.2rem 0.5rem;font-family:var(--mono)}
+.mclose:hover{color:var(--red)}
+.mvideo{width:100%;aspect-ratio:16/9;background:#000;display:block}
+.mmeta{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:1px;background:var(--border);font-family:var(--mono);font-size:0.65rem}
+.mmeta div{background:var(--card);padding:0.45rem 0.7rem;display:flex;flex-direction:column;gap:0.1rem}
+[data-theme="light"] .mmeta div{background:#f5f7f6}
+.mmeta label{font-size:0.52rem;letter-spacing:0.12em;color:var(--text-dim);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div class="toolbar" id="tb">
+  <div id="mf" style="display:flex;flex-wrap:wrap;gap:3px;flex:1">
+    <button class="fbtn active" onclick="setF('all',this)">Tout</button>
+    <button class="fbtn" onclick="toggleQC(this)">Québec ▾</button>
+    <button class="fbtn" onclick="setF('montreal',this)">Montréal</button>
+    <button class="fbtn" onclick="setF('laval',this)">Laval</button>
+    <button class="fbtn" onclick="setF('hull',this)">Hull/Gatineau</button>
+    <button class="fbtn" onclick="setF('rive-sud',this)">Rive-Sud</button>
+    <button class="fbtn" onclick="setF('laurentides',this)">Laurentides</button>
+    <button class="fbtn" onclick="setF('saguenay',this)">Saguenay</button>
+    <button class="fbtn" onclick="setF('route138',this)">Route 138</button>
+    <button class="fbtn" onclick="setF('parc-laurentides',this)">Parc Laurentides</button>
+  </div>
+  <div class="toolbar-right">
+    <!-- PERF: static SVG thumbnail — zero recursive iframe load -->
+    <a class="ops-link" href="mtq_ops_center_v5.html" target="_blank" title="MTQ Centre Opérationnel — ScanQC">
+      <div class="ops-thumb">
+        <svg viewBox="0 0 38 22" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <rect width="38" height="22" fill="#0a1210"/>
+          <rect x="2" y="2" width="34" height="18" rx="1" fill="none" stroke="#1e3028" stroke-width="0.5"/>
+          <!-- Mini map dots representing cameras -->
+          <circle cx="8"  cy="8"  r="1.5" fill="#00ff88"/>
+          <circle cx="16" cy="12" r="1.5" fill="#ffaa00"/>
+          <circle cx="25" cy="7"  r="1.5" fill="#00ff88"/>
+          <circle cx="31" cy="15" r="2"   fill="#ff3344"/>
+          <line x1="8" y1="8" x2="16" y2="12" stroke="#1e3028" stroke-width="0.5"/>
+          <line x1="16" y1="12" x2="25" y2="7" stroke="#1e3028" stroke-width="0.5"/>
+          <line x1="25" y1="7" x2="31" y2="15" stroke="#1e3028" stroke-width="0.5"/>
+          <text x="3" y="20" fill="#00c866" font-size="3.5" font-family="monospace">SCANQC</text>
+        </svg>
+      </div>
+      <div class="ops-label">
+        <span class="ol-top">⊞ MTQ Ops</span>
+        <span class="ol-sub">Centre Opérationnel</span>
+      </div>
+    </a>
+    <span class="cam-count" id="cnt">—</span>
+    <button class="rbtn" onclick="doRefresh()" title="Rafraîchir maintenant">↻</button>
+  </div>
+</div>
+
+<div class="sub-bar" id="sb">
+  <button class="fbtn" onclick="setSub('all-qc',this)">Toutes QC</button>
+  <button class="fbtn" onclick="setSub('qc-a40',this)">A-40</button>
+  <button class="fbtn" onclick="setSub('qc-a73',this)">A-73</button>
+  <button class="fbtn" onclick="setSub('qc-a440',this)">A-440</button>
+  <button class="fbtn" onclick="setSub('qc-a540',this)">A-540</button>
+  <button class="fbtn" onclick="setSub('qc-a573',this)">A-573</button>
+  <button class="fbtn" onclick="setSub('qc-a740',this)">A-740</button>
+  <button class="fbtn" onclick="setSub('qc-r138',this)">R-138</button>
+</div>
+
+<div class="status">
+  <div class="sdot"></div>
+  <span id="stmsg">184 caméras — Transports Québec</span>
+  <span style="margin-left:auto;font-size:0.52rem;opacity:0.45">
+    Refresh auto 5 min ·
+    <a href="https://www.quebec511.info" target="_blank" style="color:inherit">quebec511.info</a>
+    · CC-BY 4.0
+  </span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mhdr-title" id="mtitle"></span>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <video class="mvideo" id="mvid" autoplay muted loop playsinline controls></video>
+    <div class="mmeta" id="mmeta"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA — exact same camera list from original file
+   ═══════════════════════════════════════════════════════════════ */
+const cameras = [
+  // ── MONTRÉAL
+  {id:3399,r:'montreal',   fr:'A-13 à l\'A-20',                       lat:45.453,lng:-73.660},
+  {id:3398,r:'montreal',   fr:'A-13 nord de l\'A-20',                 lat:45.460,lng:-73.657},
+  {id:3340,r:'montreal',   fr:'A-15 / Côte-Saint-Paul',               lat:45.465,lng:-73.607},
+  {id:3337,r:'montreal',   fr:'A-15 / Sherbrooke Ouest',              lat:45.468,lng:-73.609},
+  {id:3329,r:'montreal',   fr:'A-15 Sud — Décarie',                   lat:45.473,lng:-73.619},
+  {id:3816,r:'montreal',   fr:'A-20 ouest Turcot',                    lat:45.461,lng:-73.580},
+  {id:3808,r:'montreal',   fr:'A-25 / Tunnel La Fontaine',            lat:45.537,lng:-73.506},
+  {id:3425,r:'montreal',   fr:'A-40 / A-25 — Anjou',                  lat:45.579,lng:-73.558},
+  // ── LAVAL
+  {id:3341,r:'laval',      fr:'A-15 / boul. Cartier Ouest',           lat:45.560,lng:-73.709},
+  {id:3342,r:'laval',      fr:'A-15 / boul. du Souvenir',             lat:45.570,lng:-73.714},
+  {id:3343,r:'laval',      fr:'A-15 / boul. Saint-Martin',            lat:45.576,lng:-73.716},
+  // ── RIVE-SUD
+  {id:3322,r:'rive-sud',   fr:'A-10 / pont Champlain',                lat:45.490,lng:-73.524},
+  {id:3323,r:'rive-sud',   fr:'A-10 ouest route 134',                 lat:45.449,lng:-73.468},
+  {id:3324,r:'rive-sud',   fr:'A-10 est route 134',                   lat:45.447,lng:-73.462},
+  // ── HULL / GATINEAU
+  {id:3580,r:'hull',       fr:'A-5 / boul. Maisonneuve',              lat:45.430,lng:-75.720},
+  {id:3581,r:'hull',       fr:'A-5 dir. sud / Casino',                lat:45.425,lng:-75.718},
+  {id:3584,r:'hull',       fr:'Échangeur A-50 / A-5',                 lat:45.464,lng:-75.680},
+  {id:3591,r:'hull',       fr:'A-50 / boul. Allumettières',           lat:45.452,lng:-75.698},
+  {id:3596,r:'hull',       fr:'Boul. Fournier dir. sud',              lat:45.467,lng:-75.660},
+  // ── LAURENTIDES
+  {id:3345,r:'laurentides',fr:'A-15 / pont Gédéon-Ouimet',           lat:45.709,lng:-73.991},
+  {id:3347,r:'laurentides',fr:'A-15 / A-640',                        lat:45.736,lng:-74.000},
+  {id:3349,r:'laurentides',fr:'A-15 / ch. Côte Nord',                lat:45.755,lng:-74.008},
+  // ── PARC LAURENTIDES
+  {id:3535,r:'parc-laurentides',fr:'R-175 à l\'Étape (Parc des Laurentides)',lat:47.360,lng:-71.100},
+  // ── QUÉBEC — A-40
+  {id:3968,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / route 138'},
+  {id:3967,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / route 138'},
+  {id:3966,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / boul. des Chutes'},
+  {id:3965,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / boul. des Chutes'},
+  {id:3551,r:'quebec',sub:'qc-a40',fr:'A-40 / route de Fossambault'},
+  {id:3792,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) à l\'est de la route 138'},
+  {id:3502,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) à l\'est de la route 138'},
+  {id:3552,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / ch. du Lac'},
+  {id:3553,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / ch. du Lac'},
+  {id:3604,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / ch. Jean-Gauvin'},
+  {id:3480,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / ch. Jean-Gauvin'},
+  {id:3481,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / av. Le Gendre'},
+  {id:3844,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / av. Le Gendre'},
+  {id:3848,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / aut. 540'},
+  {id:3849,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / aut. 540'},
+  {id:3573,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / av. Blaise-Pascal'},
+  {id:3482,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / av. Blaise-Pascal'},
+  {id:3614,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / aut. 73 (Henri-IV)'},
+  {id:3485,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / aut. 73 (Henri-IV)'},
+  {id:3486,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / boul. Saint-Jacques'},
+  {id:3609,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / boul. Saint-Jacques'},
+  {id:3487,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / aut. 740'},
+  {id:3488,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / aut. 740'},
+  {id:3489,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / boul. Pierre-Bertrand'},
+  {id:3490,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / boul. Pierre-Bertrand'},
+  {id:3491,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / aut. 73 (Laurentienne)'},
+  {id:3492,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / aut. 73 (Laurentienne)'},
+  {id:3523,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / 1re Avenue'},
+  {id:3524,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / 1re Avenue'},
+  {id:3554,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / boul. Henri-Bourassa'},
+  {id:3555,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / boul. Henri-Bourassa'},
+  {id:3525,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / av. D\'Estimauville'},
+  {id:3526,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / av. D\'Estimauville'},
+  {id:3556,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / av. Saint-David'},
+  {id:3557,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / av. Saint-David'},
+  {id:3558,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / rue Seigneuriale'},
+  {id:3559,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / rue Seigneuriale'},
+  {id:3560,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / rue Labelle'},
+  {id:3561,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. est) / rue Labelle'},
+  {id:3508,r:'quebec',sub:'qc-a40',fr:'A-40 (dir. ouest) / aut. 440'},
+  {id:3605,r:'quebec',sub:'qc-a40',fr:'A-440 (dir. ouest) / pont de l\'Île-d\'Orléans'},
+  // ── QUÉBEC — A-73
+  {id:3976,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / Stoneham'},
+  {id:3975,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / rue Jacques-Bédard'},
+  {id:3455,r:'quebec',sub:'qc-a73',fr:'A-73 sur le pont Pierre-Laporte'},
+  {id:3454,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / pont Pierre-Laporte'},
+  {id:3603,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / pont Pierre-Laporte'},
+  {id:3469,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / aut. 540'},
+  {id:3470,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / aut. 540'},
+  {id:3471,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / boul. Hochelaga'},
+  {id:3611,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / boul. Hochelaga'},
+  {id:3472,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / ch. des Quatre-Bourgeois'},
+  {id:3846,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / ch. des Quatre-Bourgeois'},
+  {id:3473,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) sortie 138 / ch. Sainte-Foy'},
+  {id:3610,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) sortie 138 / ch. Sainte-Foy'},
+  {id:3970,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / ch. Sainte-Foy'},
+  {id:3474,r:'quebec',sub:'qc-a73',fr:'A-73 Henri-IV (dir. sud) / aut. 440'},
+  {id:3475,r:'quebec',sub:'qc-a73',fr:'A-73 Henri-IV (dir. nord) / aut. 440'},
+  {id:3476,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / rue John-Molson'},
+  {id:3847,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / rue John-Molson'},
+  {id:3713,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / boul. Wilfrid-Hamel'},
+  {id:3712,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / boul. Wilfrid-Hamel'},
+  {id:3477,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) nord du boul. Wilfrid-Hamel'},
+  {id:3564,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) nord du boul. Wilfrid-Hamel'},
+  {id:3898,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / aut. 40 et aut. 573'},
+  {id:3897,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / aut. 40 et aut. 573'},
+  {id:3484,r:'quebec',sub:'qc-a73',fr:'A-73 Henri-IV (dir. sud) / aut. 40'},
+  {id:3579,r:'quebec',sub:'qc-a73',fr:'A-73 Laurentienne (dir. nord) / aut. 40'},
+  {id:3493,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / boul. Lebourgneuf'},
+  {id:3608,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / boul. Lebourgneuf'},
+  {id:3911,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / boul. Louis-XIV'},
+  {id:3494,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / boul. Louis-XIV'},
+  {id:3607,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / boul. Jean-Talon'},
+  {id:3495,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / boul. Jean-Talon'},
+  {id:3912,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / rue de la Faune'},
+  {id:3622,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / rue de la Faune'},
+  {id:3621,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / rue de la Faune (2)'},
+  {id:3913,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. sud) / rue George-Muir'},
+  {id:3623,r:'quebec',sub:'qc-a73',fr:'A-73 (dir. nord) / rue George-Muir'},
+  {id:3624,r:'quebec',sub:'qc-a73',fr:'A-73 nord de la rue George-Muir'},
+  {id:3505,r:'quebec',sub:'qc-a73',fr:'A-73 sortie 157 (Lac-Beauport)'},
+  // ── QUÉBEC — A-440
+  {id:3909,r:'quebec',sub:'qc-a440',fr:'A-440 / rue Frank-Carrel'},
+  {id:3515,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / aut. 73 (Henri-IV)'},
+  {id:3516,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / aut. 73 (Henri-IV)'},
+  {id:3503,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / aut. 740'},
+  {id:3845,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / aut. 740'},
+  {id:3520,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / boul. du Versant-Nord'},
+  {id:3627,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / boul. du Versant-Nord'},
+  {id:3521,r:'quebec',sub:'qc-a440',fr:'A-440 ouest de l\'av. Saint-Sacrement'},
+  {id:3796,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / av. Honoré-Mercier'},
+  {id:3797,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / rivière Saint-Charles'},
+  {id:3795,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / rivière Saint-Charles'},
+  {id:3708,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / boul. Henri-Bourassa'},
+  {id:3709,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / boul. Henri-Bourassa'},
+  {id:3711,r:'quebec',sub:'qc-a440',fr:'Boul. Henri-Bourassa (dir. sud) / aut. 440'},
+  {id:3710,r:'quebec',sub:'qc-a440',fr:'Boul. Henri-Bourassa (dir. nord) / aut. 440'},
+  {id:3511,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / av. D\'Estimauville'},
+  {id:3703,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / av. D\'Estimauville'},
+  {id:3704,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / boul. François-de-Laval'},
+  {id:3705,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / boul. François-de-Laval'},
+  {id:3706,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / boul. des Chutes'},
+  {id:3707,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. est) / boul. des Chutes'},
+  {id:3606,r:'quebec',sub:'qc-a440',fr:'A-440 (dir. ouest) / aut. 40'},
+  // ── QUÉBEC — A-540
+  {id:3998,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. ouest) / boul. Wilfrid-Hamel'},
+  {id:3612,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. sud) / aut. 73'},
+  {id:3613,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. nord) / aut. 73'},
+  {id:3499,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. sud) / boul. Hochelaga'},
+  {id:3602,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. nord) / boul. Hochelaga'},
+  {id:3601,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. sud) / ch. Sainte-Foy'},
+  {id:3504,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. nord) / ch. Sainte-Foy'},
+  {id:3574,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. sud) / boul. du Versant-Nord'},
+  {id:3478,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. nord) / boul. du Versant-Nord'},
+  {id:3479,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. sud) / av. Jules-Verne'},
+  {id:3910,r:'quebec',sub:'qc-a540',fr:'A-540 (dir. nord) / av. Jules-Verne'},
+  // ── QUÉBEC — A-573
+  {id:3851,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. sud) / aut. 40'},
+  {id:3850,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / aut. 40'},
+  {id:3517,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. sud) / rue Jean-Marchand'},
+  {id:3852,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / rue Jean-Marchand'},
+  {id:3518,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. sud) / boul. Chauveau Ouest'},
+  {id:3519,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / boul. Chauveau Ouest'},
+  {id:3615,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. sud) / route Sainte-Geneviève'},
+  {id:3616,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / route Sainte-Geneviève'},
+  {id:3617,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. sud) / av. Industrielle'},
+  {id:3618,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / av. Industrielle'},
+  {id:3969,r:'quebec',sub:'qc-a573',fr:'A-573 (dir. nord) / rue de Montolieu'},
+  // ── QUÉBEC — A-740
+  {id:3566,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / ch. des Quatre-Bourgeois'},
+  {id:3567,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / ch. des Quatre-Bourgeois'},
+  {id:3568,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) tunnel Robert-Bourassa'},
+  {id:3569,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) tunnel Robert-Bourassa'},
+  {id:3527,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / boul. du Versant-Nord'},
+  {id:3528,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / boul. du Versant-Nord'},
+  {id:3522,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / rue Léon-Harmel'},
+  {id:3628,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / rue Léon-Harmel'},
+  {id:3529,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / boul. Wilfrid-Hamel'},
+  {id:3530,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / boul. Wilfrid-Hamel'},
+  {id:3514,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / boul. Père-Lelièvre'},
+  {id:3513,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / boul. Père-Lelièvre'},
+  {id:3575,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / aut. 40'},
+  {id:3576,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / aut. 40'},
+  {id:3506,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. sud) / boul. Lebourgneuf'},
+  {id:3914,r:'quebec',sub:'qc-a740',fr:'A-740 (dir. nord) / boul. Lebourgneuf'},
+  // ── QUÉBEC — R-138
+  {id:3955,r:'quebec',sub:'qc-r138',fr:'R-138 (dir. ouest) / ch. du Massif'},
+  {id:3956,r:'quebec',sub:'qc-r138',fr:'R-138 (dir. est) / ch. du Massif'},
+  {id:3996,r:'quebec',sub:'qc-r138',fr:'R-138 / Baie-Saint-Paul (Rang de la Martine)'},
+  {id:3951,r:'quebec',sub:'qc-r138',fr:'R-138 / Côte de l\'Église (Boischatel)'},
+  {id:3952,r:'quebec',sub:'qc-r138',fr:'R-138 / rue Gagnon (Ste-Anne-de-Beaupré)'},
+  {id:3544,r:'quebec',sub:'qc-r138',fr:'R-138 — Baie-Sainte-Catherine'},
+  // ── ROUTE 138
+  {id:3406,r:'route138',   fr:'Route 138 — pont Honoré-Mercier',      lat:45.391,lng:-73.656},
+  {id:3405,r:'route138',   fr:'Route 138 / rue Airlie',               lat:45.395,lng:-73.643},
+  {id:3404,r:'route138',   fr:'Route 138 / rue Wanklyn',              lat:45.400,lng:-73.630},
+  {id:3403,r:'route138',   fr:'Route 138 / rue Clément',              lat:45.404,lng:-73.617},
+  {id:3361,r:'route138',   fr:'Route 138 sud de Saint-Pierre',        lat:45.453,lng:-73.571},
+  {id:3401,r:'route138',   fr:'Route 138 — pont Le Gardeur',          lat:45.763,lng:-73.458},
+  {id:3992,r:'route138',   fr:'Route 138 — La Malbaie',               lat:47.649,lng:-70.163},
+  // ── SAGUENAY — LAC ST-JEAN
+  {id:3536,r:'saguenay',   fr:'R-175 / Rive Sud',                     lat:47.800,lng:-71.250},
+  {id:3537,r:'saguenay',   fr:'R-175 / Rive Sud (2)',                 lat:47.820,lng:-71.260},
+  {id:3538,r:'saguenay',   fr:'R-175 / Rive Nord',                    lat:47.840,lng:-71.270},
+  {id:3539,r:'saguenay',   fr:'R-175 / Rive Nord (2)',                lat:47.860,lng:-71.280},
+  {id:3890,r:'saguenay',   fr:'R-169 Nord / R-172',                   lat:48.420,lng:-71.870},
+  {id:3876,r:'saguenay',   fr:'R-169 Sud / Sainte-Cécile',            lat:48.560,lng:-71.680},
+  {id:3877,r:'saguenay',   fr:'R-169 Nord / Sainte-Cécile',           lat:48.580,lng:-71.670},
+  {id:3889,r:'saguenay',   fr:'R-172 Est / R-169',                    lat:48.400,lng:-71.800},
+];
+
+const QC_SECTIONS = [
+  {sub:'qc-a40', label:'Autoroute 40'},
+  {sub:'qc-a73', label:'Autoroute 73'},
+  {sub:'qc-a440',label:'Autoroute 440'},
+  {sub:'qc-a540',label:'Autoroute 540'},
+  {sub:'qc-a573',label:'Autoroute 573'},
+  {sub:'qc-a740',label:'Autoroute 740'},
+  {sub:'qc-r138',label:'Route 138'},
+];
+
+const VID_URL = id =>
+  `https://www.quebec511.info/diffusion/fr/camera/camera.ashx?format=mp4&id=${id}`;
+
+// O(1) lookup map
+const CAM_MAP = Object.fromEntries(cameras.map(c => [c.id, c]));
+
+// State
+let curF = 'all', curSub = null;
+
+// Sync theme from parent if embedded in iframe
+try {
+  const pt = window.parent.document.documentElement.getAttribute('data-theme');
+  if (pt) document.documentElement.setAttribute('data-theme', pt);
+  new MutationObserver(() => {
+    const t = window.parent.document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', t || '');
+  }).observe(window.parent.document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+} catch(e) {}
+
+/* ═══════════════════════════════════════════════════════════════
+   INTERSECTION OBSERVER — lazy autoplay + offscreen pause
+
+   Two observers:
+   1. playObs  — fires when video enters viewport (+200px ahead).
+                 Sets src and calls play(). Unobserves after load.
+   2. pauseObs — fires when video scrolls 300px past viewport edge.
+                 Pauses to free bandwidth. Re-registers with playObs.
+
+   Net effect: at any moment only ~4–8 visible videos are streaming.
+   Previously: ALL videos in the DOM streamed simultaneously.
+   ═══════════════════════════════════════════════════════════════ */
+let playObs, pauseObs;
+
+function initObservers() {
+  // Disconnect any previous observers (called after each render)
+  if (playObs)  playObs.disconnect();
+  if (pauseObs) pauseObs.disconnect();
+
+  playObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const v = e.target;
+      // Assign src on first entry — triggers network request
+      if (!v._srcSet) {
+        v._srcSet = true;
+        const src = document.createElement('source');
+        src.type = 'video/mp4';
+        src.src  = VID_URL(v.dataset.id) + '?_t=' + _refreshToken;
+        v.appendChild(src);
+        v.load();
+      }
+      v.play().catch(() => {});
+      v.addEventListener('canplay', () => {
+        v.classList.add('playing');
+        const ph = v.parentElement.querySelector('.cam-ph');
+        if (ph) ph.classList.add('hidden');
+      }, {once: true});
+      // Once playing, stop watching for entry — pauseObs handles the rest
+      playObs.unobserve(v);
+    });
+  }, { rootMargin: '200px 0px' }); // pre-load 200px before visible
+
+  pauseObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting && !e.target.paused) {
+        e.target.pause();
+        // Re-register with playObs so it resumes when scrolled back
+        playObs.observe(e.target);
+      }
+    });
+  }, { rootMargin: '-300px 0px' }); // pause when 300px offscreen
+}
+
+function observeVideos() {
+  document.querySelectorAll('.vp video[data-id]').forEach(v => {
+    playObs.observe(v);
+    pauseObs.observe(v);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTER HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function setF(f, btn) {
+  curF = f; curSub = null;
+  document.querySelectorAll('#mf .fbtn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (f !== 'quebec') document.getElementById('sb').classList.remove('on');
+  render();
+}
+
+function toggleQC(btn) {
+  curF = 'quebec'; curSub = 'all-qc';
+  document.querySelectorAll('#mf .fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sb').classList.toggle('on');
+  document.querySelectorAll('#sb .fbtn').forEach(b => b.classList.remove('active'));
+  render();
+}
+
+function setSub(s, btn) {
+  curSub = s;
+  document.querySelectorAll('#sb .fbtn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  render();
+}
+
+function getFiltered() {
+  if (curF === 'all') return cameras;
+  if (curF === 'quebec') {
+    const qc = cameras.filter(c => c.r === 'quebec');
+    if (curSub && curSub !== 'all-qc') return qc.filter(c => c.sub === curSub);
+    return qc;
+  }
+  return cameras.filter(c => c.r === curF);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+   Single innerHTML write per render. Observers re-attached after.
+   ═══════════════════════════════════════════════════════════════ */
+function buildCard(cam) {
+  const name = cam.fr;
+  const reg  = cam.sub ? cam.sub.replace('qc-','').toUpperCase() : cam.r.toUpperCase();
+  const ts   = new Date().toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  // PERF: video has NO src yet — IntersectionObserver assigns it on viewport entry
+  return `<div class="cam-card" onclick="openCam(${cam.id})" data-id="${cam.id}">
+  <div class="vp">
+    <video muted loop playsinline preload="none" data-id="${cam.id}"></video>
+    <div class="cam-ph">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+      </svg>
+      <span>Chargement…</span>
+    </div>
+    <div class="vp-overlay"><span class="live"><span class="ldot"></span>LIVE</span></div>
+    <div class="cam-ts" id="ts-${cam.id}">${ts}</div>
+  </div>
+  <div class="cam-info">
+    <div class="cam-name">${name}</div>
+    <div class="cam-foot"><span class="cam-reg">${reg}</span><span class="cam-id">#${cam.id}</span></div>
+  </div>
+</div>`;
+}
+
+function render() {
+  const filtered = getFiltered();
+  document.getElementById('cnt').textContent = filtered.length + ' cam';
+
+  let html = '';
+  if (curF === 'quebec' && (!curSub || curSub === 'all-qc')) {
+    for (const sec of QC_SECTIONS) {
+      const cams = filtered.filter(c => c.sub === sec.sub);
+      if (!cams.length) continue;
+      html += `<div class="sec-hdr">${sec.label} <span style="font-weight:400;opacity:0.45;font-size:0.7rem">(${cams.length})</span></div>`;
+      html += cams.map(buildCard).join('');
+    }
+    const uncat = filtered.filter(c => !c.sub);
+    if (uncat.length) {
+      html += `<div class="sec-hdr">Autres <span style="font-weight:400;opacity:0.45;font-size:0.7rem">(${uncat.length})</span></div>`;
+      html += uncat.map(buildCard).join('');
+    }
+  } else {
+    html = filtered.map(buildCard).join('');
+  }
+
+  // PERF: single DOM write, then set up observers on fresh elements
+  document.getElementById('grid').innerHTML = html;
+  initObservers();   // fresh observers for new DOM
+  observeVideos();   // register all new <video> elements
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REFRESH — updates src token on ALL playing videos simultaneously
+   using requestAnimationFrame to batch DOM reads/writes.
+   Preserves autoplay: videos that are playing stay playing.
+   Schedules itself every 5 minutes via recursive setTimeout
+   (unlike setInterval, skips a cycle if previous refresh is slow).
+   ═══════════════════════════════════════════════════════════════ */
+let _refreshToken = Date.now();
+let _refreshScheduled = false;
+
+function doRefresh() {
+  _refreshToken = Date.now();
+
+  // PERF: collect all playing videos first (read phase), then update (write phase)
+  // Batching reads before writes avoids forced reflow on each iteration
+  const playing = [];
+  document.querySelectorAll('.vp video[data-id]').forEach(v => {
+    if (v._srcSet) playing.push(v);
+  });
+
+  // Write phase — update source tokens in one pass
+  playing.forEach(v => {
+    const src = v.querySelector('source');
+    if (src) {
+      src.src = VID_URL(v.dataset.id) + '?_t=' + _refreshToken;
+      v.load();
+      // Only call play() on videos that were playing — preserves state for paused/offscreen
+      if (!v.paused) v.play().catch(() => {});
+    }
+    // Update timestamp display
+    const ts = document.getElementById('ts-' + v.dataset.id);
+    if (ts) ts.textContent = new Date().toLocaleTimeString('fr-CA',
+      {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  });
+
+  document.getElementById('stmsg').textContent =
+    `Rafraîchi ${new Date().toLocaleTimeString('fr-CA')} · ${getFiltered().length} caméras`;
+
+  scheduleNextRefresh();
+}
+
+function scheduleNextRefresh() {
+  if (_refreshScheduled) return;
+  _refreshScheduled = true;
+  setTimeout(() => {
+    _refreshScheduled = false;
+    doRefresh();
+  }, 300_000); // 5 minutes
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════════════════════════ */
+function openCam(id) {
+  const cam = CAM_MAP[id];
+  if (!cam) return;
+  document.getElementById('mtitle').textContent = cam.fr;
+  const v = document.getElementById('mvid');
+  v.src = VID_URL(id) + '?_t=' + Date.now();
+  v.load();
+  v.play().catch(() => {});
+  document.getElementById('mmeta').innerHTML = `
+    <div><label>ID</label>${id}</div>
+    <div><label>Région</label>${(cam.r||'').toUpperCase()}</div>
+    <div><label>Localisation</label>${cam.fr}</div>
+    ${cam.lat ? `<div><label>Coordonnées</label>${cam.lat}°N, ${Math.abs(cam.lng)}°O</div>` : ''}
+    <div><label>Source</label>Transports Québec</div>
+    <div><label>Heure</label>${new Date().toLocaleString('fr-CA')}</div>`;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+  const v = document.getElementById('mvid');
+  v.pause();
+  v.src = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+render();          // draws grid with empty <video> elements
+scheduleNextRefresh(); // starts the 5-min auto-refresh cycle
+</script>
+</body>
+</html>
