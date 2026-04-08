@@ -1,0 +1,2 @@
+This package includes integration scaffolding intended to host a local build of BrowSDR.
+Review the upstream BrowSDR license obligations before distributing a bundled build.

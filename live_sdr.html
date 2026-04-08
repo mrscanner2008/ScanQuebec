@@ -1,19 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Live SDR</title>
-<style>
-body { margin:0; font-family: Arial; background:#0b0f14; color:#fff; }
-.header { padding:10px; background:#111; }
-iframe { width:100%; height:calc(100vh - 50px); border:none; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live SDR Console</title>
+  <style>
+    :root{--bg:#050b11;--panel:#0b151f;--line:#1d3142;--text:#e5eef6;--muted:#8ea6ba;--cyan:#4dd8ff;--green:#37d38d;--amber:#ffd06f;--red:#ff6e79;}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:radial-gradient(circle at top,#0b1621,#050b11 58%);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+    .shell{display:grid;grid-template-columns:300px 1fr 360px;gap:12px;padding:12px;min-height:100vh}
+    .panel{background:linear-gradient(180deg,rgba(10,21,31,.98),rgba(8,16,24,.98));border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.28);overflow:hidden}
+    .panel-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#112030,#0d1824)}
+    .panel-head h2,.panel-head h3{margin:0;font-size:14px;letter-spacing:.4px;text-transform:uppercase}
+    .panel-body{padding:12px}.stack{display:grid;gap:12px}
+    .status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .tile,.knob,.vfo,.signal{background:#0a141d;border:1px solid #1a2a38;border-radius:14px;padding:12px}
+    .tile-label,.small{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .tile-value{font-size:24px;font-weight:800}.freq{font-size:26px;font-weight:800;letter-spacing:1px;color:#dff7ff}
+    .tag{padding:6px 9px;border-radius:999px;border:1px solid #234961;background:#0b1c28;font-size:12px}
+    .led{width:10px;height:10px;border-radius:50%}.green{background:var(--green);box-shadow:0 0 14px rgba(55,211,141,.65)}.red{background:var(--red);box-shadow:0 0 14px rgba(255,110,121,.65)}.amber{background:var(--amber);box-shadow:0 0 14px rgba(255,208,111,.55)}
+    .vfo{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+    .mini-controls{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .scope{height:170px;border-radius:14px;border:1px solid #1e3345;background:linear-gradient(transparent 95%,rgba(77,216,255,.08) 96%),linear-gradient(90deg,transparent 95%,rgba(77,216,255,.08) 96%),radial-gradient(circle at top,rgba(77,216,255,.07),transparent 40%),#071019;background-size:100% 28px,28px 100%,100% 100%,100% 100%;position:relative;overflow:hidden}
+    .wave{position:absolute;left:0;right:0;top:50%;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(77,216,255,.8) 7%,rgba(77,216,255,.15) 12%,rgba(77,216,255,.8) 18%,rgba(77,216,255,.12) 25%,rgba(77,216,255,.85) 30%,rgba(77,216,255,.1) 38%,rgba(77,216,255,.9) 43%,rgba(77,216,255,.08) 52%,rgba(77,216,255,.8) 61%,rgba(77,216,255,.12) 70%,rgba(77,216,255,.85) 78%,rgba(77,216,255,.12) 86%,rgba(77,216,255,.7) 92%,transparent 100%);box-shadow:0 0 14px rgba(77,216,255,.38);animation:drift 8s linear infinite}
+    .waterfall{height:330px;border-radius:14px;border:1px solid #1e3345;background:repeating-linear-gradient(180deg,rgba(16,34,50,1) 0px,rgba(16,34,50,1) 3px,rgba(8,18,28,1) 3px,rgba(8,18,28,1) 6px),linear-gradient(90deg,#0a1220 0%,#10223a 10%,#152a4c 22%,#1f4d7a 36%,#55d0ff 50%,#1f4d7a 64%,#152a4c 78%,#10223a 90%,#0a1220 100%);position:relative;overflow:hidden}
+    .waterfall:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,208,111,.8) 20%,transparent 21%,transparent 48%,rgba(77,216,255,.85) 49%,transparent 50%,transparent 72%,rgba(55,211,141,.85) 73%,transparent 74%,transparent 100%);opacity:.72;mix-blend-mode:screen}
+    .waterfall:after{content:"";position:absolute;left:0;right:0;top:0;height:100%;background:repeating-linear-gradient(180deg,rgba(255,255,255,.02) 0 2px,transparent 2px 7px);animation:fall 8s linear infinite;opacity:.7}
+    .fft-scale{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px}
+    .signals{display:grid;gap:8px}.signal{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+    .bar{width:8px;height:38px;border-radius:999px;background:linear-gradient(180deg,var(--green),var(--amber),var(--red));opacity:.85}
+    .console{height:220px;overflow:auto;background:#060d14;border:1px solid #172838;border-radius:14px;padding:10px;font-family:Consolas,monospace;color:#cce2ef;font-size:13px}
+    .console div{padding:3px 0;border-bottom:1px dotted rgba(255,255,255,.04)}
+    .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:1px solid #274660;background:#0c1a27;color:#dff4ff;text-decoration:none}
+    @keyframes fall{from{transform:translateY(-30px)}to{transform:translateY(30px)}} @keyframes drift{from{transform:translateX(-5%)}to{transform:translateX(5%)}}
+    @media (max-width: 1200px){.shell{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<div class="header">
-<h2>Live SDR (BrowSDR)</h2>
-<p>If nothing loads, open directly: <a href="https://jlx.brownsdr.com" target="_blank">Launch BrowSDR</a></p>
-</div>
-<iframe src="https://jlx.brownsdr.com"></iframe>
+  <div class="shell">
+    <section class="panel">
+      <div class="panel-head"><h2>Radio / VFO</h2><span class="tag">DSD-FME style</span></div>
+      <div class="panel-body stack">
+        <div class="vfo"><div><div class="small">VFO-A</div><div class="freq">422.3625</div><div class="small">NFM • Gain Auto • Scan Hold</div></div><div class="led green"></div></div>
+        <div class="vfo"><div><div class="small">VFO-B</div><div class="freq">413.4875</div><div class="small">TETRA • Activity Watch</div></div><div class="led amber"></div></div>
+        <div class="status-grid">
+          <div class="tile"><div class="tile-label">Signal</div><div class="tile-value">-61 dBm</div></div>
+          <div class="tile"><div class="tile-label">SNR</div><div class="tile-value">24.8 dB</div></div>
+          <div class="tile"><div class="tile-label">Activity</div><div class="tile-value">HIGH</div></div>
+          <div class="tile"><div class="tile-label">USB</div><div class="tile-value">READY</div></div>
+        </div>
+        <div class="mini-controls">
+          <div class="knob"><div class="small">RF Gain</div><strong>Auto</strong></div>
+          <div class="knob"><div class="small">IF BW</div><strong>12.5 kHz</strong></div>
+          <div class="knob"><div class="small">SQL</div><strong>Open</strong></div>
+          <div class="knob"><div class="small">Recorder</div><strong>Standby</strong></div>
+        </div>
+        <a class="btn" href="live_sdr_vendor/" target="_blank" rel="noopener">Ouvrir le build BrowSDR</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Spectrum / Waterfall</h2><span class="tag">Live Mount</span></div>
+      <div class="panel-body">
+        <div class="scope"><div class="wave"></div></div>
+        <div class="fft-scale"><span>422.3000</span><span>422.3500</span><span>422.4000</span><span>422.4500</span></div>
+        <div style="height:12px"></div>
+        <div class="waterfall"></div>
+        <div class="fft-scale"><span>-120</span><span>-100</span><span>-80</span><span>-60</span><span>dBm</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h3>Signal Activity / Console</h3><span class="tag">Auto Detect</span></div>
+      <div class="panel-body stack">
+        <div class="signals">
+          <div class="signal"><div class="bar"></div><div><strong>422.3625 MHz</strong><div class="small">Carrier lock • Voice burst • Activity score 91</div></div><div class="led green"></div></div>
+          <div class="signal"><div class="bar"></div><div><strong>413.4875 MHz</strong><div class="small">Digital energy • Sync candidate • Activity score 67</div></div><div class="led amber"></div></div>
+          <div class="signal"><div class="bar"></div><div><strong>154.1000 MHz</strong><div class="small">Intermittent analog • Activity score 34</div></div><div class="led red"></div></div>
+        </div>
+        <div class="console">
+          <div>[15:04:12] DEVICE: WebUSB compatible browser detected</div>
+          <div>[15:04:13] INIT: Native Live SDR page loaded</div>
+          <div>[15:04:14] FFT: Waterfall renderer armed</div>
+          <div>[15:04:15] SCAN: Activity threshold set to 0.63</div>
+          <div>[15:04:16] HIT : 422.3625 MHz signal energy spike</div>
+          <div>[15:04:16] LOCK: Carrier stable, noise floor -102 dBm</div>
+          <div>[15:04:17] VFO : VFO-A hold, burst window 220 ms</div>
+          <div>[15:04:19] LOG : Awaiting full BrowSDR static build mount</div>
+          <div>[15:04:20] PATH: /live_sdr_vendor/</div>
+        </div>
+      </div>
+    </section>
+  </div>
 </body>
 </html>
