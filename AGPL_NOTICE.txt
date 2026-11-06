@@ -1,2 +1,12 @@
-This package includes integration scaffolding intended to host a local build of BrowSDR.
-Review the upstream BrowSDR license obligations before distributing a bundled build.
+This repository includes integration scaffolding intended to host a local
+build of BrowSDR under live_sdr_vendor/.
+
+BrowSDR and related upstream components may be under AGPL or other copyleft
+licenses. Before distributing a bundled build:
+
+1. Review the upstream BrowSDR repository license and notices.
+2. Provide Corresponding Source for any AGPL-covered binaries you ship.
+3. Keep attribution and license texts with the distributed package.
+
+Remote iframe usage of https://jlx.brownsdr.com does not by itself create a
+bundled derivative; local builds in live_sdr_vendor/ do.

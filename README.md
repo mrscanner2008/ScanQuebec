@@ -1,15 +1,34 @@
-# ScanQuebec GitHub Pages aggressive edition
+# ScanQuebec — GitHub Pages
 
-- thème unifié ScanQuebec
-- menu latéral type centre de contrôle
-- shell principal à panneaux
-- page Live SDR visuellement plus proche de DSD-FME
-- montage statique BrowSDR via `/live_sdr_vendor/`
+Site statique ScanQC : hub scanners / radio, caméras MTQ, centre ops réseau routier, Live SDR.
+
+## Structure réelle (racine du repo)
+
+| Fichier / dossier | Rôle |
+| --- | --- |
+| `index.html` | Page publique principale (thème ScanQC, FR/EN) |
+| `cameras.html` | Mur de caméras Québec 511 |
+| `mtq_ops_center_v6.html` | Centre opérationnel MTQ (carte Leaflet) |
+| `live_sdr.html` | Console Live SDR (thème ScanQC + iframe BrowSDR) |
+| `live_sdr_vendor/` | Build local optionnel de BrowSDR (généré) |
+| `site.css` / `site.js` | Shell multi-panneaux optionnel (no-op si non utilisé) |
+| `import-browsdr.sh` / `.ps1` | Import / build BrowSDR → `live_sdr_vendor/` |
+| `.github/workflows/deploy-pages.yml` | Déploiement GitHub Pages (unique) |
+| `404.html` / `robots.txt` | Pages auxiliaires |
+
+## Contenu live vs local
+
+- **Live (réseau)** : flux caméras Québec 511, LiveATC CYQB, iframe BrowSDR distant.
+- **Local / statique** : pages HTML, thème, ops center, éventuellement `live_sdr_vendor/`.
 
 ## Déploiement
-1. Déposer tout le contenu du ZIP à la racine du repo.
-2. Remplacer `mtq_ops_center_v5.html` par ta vraie page.
-3. Lancer `scripts/import-browsdr.ps1` ou `scripts/import-browsdr.sh`.
-4. Vérifier que le build final est bien copié dans `live_sdr_vendor/`.
-5. Commit + push sur `main`.
-6. Activer GitHub Pages avec GitHub Actions.
+
+1. Contenu à la racine du repo (voir tableau ci-dessus).
+2. Ops center canonique : **`mtq_ops_center_v6.html`** (référencé depuis `index.html`).
+3. Optionnel : `./import-browsdr.sh` ou `.\import-browsdr.ps1` pour publier BrowSDR dans `live_sdr_vendor/`.
+4. Commit + push sur `main`.
+5. GitHub Pages via le workflow **Deploy GitHub Pages** uniquement.
+
+## Licence tierce
+
+Voir `AGPL_NOTICE.txt` avant de distribuer un build bundlé de BrowSDR.
