@@ -1,19 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<title>Live SDR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live SDR — ScanQC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
 <style>
-body { margin:0; font-family: Arial; background:#0b0f14; color:#fff; }
-.header { padding:10px; background:#111; }
-iframe { width:100%; height:calc(100vh - 50px); border:none; }
+:root {
+  --black:#080c0a; --panel:#0f1a16; --card:#121f1a; --border:#1e3028;
+  --green:#00ff88; --green-faint:rgba(0,255,136,0.08); --green-glow:rgba(0,255,136,0.18);
+  --amber:#ffaa00; --red:#ff3344; --text:#c8ddd5; --text-dim:#6a8a7a;
+  --mono:'Share Tech Mono',monospace; --cond:'Barlow Condensed',sans-serif;
+}
+* { box-sizing:border-box; margin:0; padding:0 }
+html, body { height:100%; background:var(--black); color:var(--text); font-family:var(--cond); overflow:hidden }
+.header {
+  height:52px; display:flex; align-items:center; gap:1rem; padding:0 1rem;
+  background:rgba(8,12,10,0.96); border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.logo {
+  font-family:var(--mono); color:var(--green); font-size:0.95rem; letter-spacing:0.12em;
+  text-decoration:none; display:flex; align-items:center; gap:0.5rem;
+}
+.logo::before {
+  content:''; width:8px; height:8px; border-radius:50%; background:var(--green);
+  box-shadow:0 0 8px var(--green); animation:pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.title {
+  font-size:0.85rem; letter-spacing:0.14em; text-transform:uppercase; color:#fff; font-weight:700;
+}
+.status {
+  margin-left:auto; font-family:var(--mono); font-size:0.65rem; letter-spacing:0.08em;
+  color:var(--text-dim); display:flex; align-items:center; gap:0.45rem;
+}
+.status .dot { width:6px; height:6px; border-radius:50%; background:var(--amber) }
+.status.live .dot { background:var(--green); box-shadow:0 0 6px var(--green) }
+.status.offline .dot { background:var(--red) }
+.actions { display:flex; gap:0.4rem; margin-left:0.75rem }
+.btn {
+  font-family:var(--mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+  padding:0.35rem 0.7rem; border:1px solid var(--border); background:transparent; color:var(--text-dim);
+  cursor:pointer; text-decoration:none; transition:all 0.15s;
+}
+.btn:hover { color:var(--green); border-color:rgba(0,255,136,0.35); background:var(--green-faint) }
+.frame-wrap { position:relative; height:calc(100% - 52px); background:#040a10 }
+iframe { width:100%; height:100%; border:none; display:block; background:#040a10 }
+.fallback {
+  position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:1rem; padding:2rem; text-align:center; background:var(--black);
+}
+.fallback.show { display:flex }
+.fallback h2 {
+  font-size:1.4rem; letter-spacing:0.12em; text-transform:uppercase; color:#fff;
+}
+.fallback p { max-width:420px; color:var(--text-dim); font-family:var(--mono); font-size:0.75rem; line-height:1.6 }
+.fallback a {
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--green); border:1px solid var(--green); padding:0.65rem 1.4rem; text-decoration:none;
+}
+.fallback a:hover { background:var(--green); color:var(--black); box-shadow:0 0 24px var(--green-glow) }
+.note {
+  font-family:var(--mono); font-size:0.55rem; color:var(--text-dim); opacity:0.7; margin-top:0.5rem;
+}
 </style>
 </head>
 <body>
-<div class="header">
-<h2>Live SDR (BrowSDR)</h2>
-<p>If nothing loads, open directly: <a href="https://jlx.brownsdr.com" target="_blank">Launch BrowSDR</a></p>
-</div>
-<iframe src="https://jlx.brownsdr.com"></iframe>
+  <header class="header">
+    <a class="logo" href="index.html">SCANQC</a>
+    <div class="title">Live SDR</div>
+    <div class="status" id="sdrStatus"><span class="dot"></span><span id="sdrStatusText">CHARGEMENT…</span></div>
+    <div class="actions">
+      <button class="btn" type="button" id="btnReload">↻ Recharger</button>
+      <a class="btn" id="btnExternal" href="https://jlx.brownsdr.com" target="_blank" rel="noopener">Ouvrir BrowSDR ↗</a>
+      <a class="btn" href="index.html">← Accueil</a>
+    </div>
+  </header>
+
+  <div class="frame-wrap">
+    <iframe
+      id="sdrFrame"
+      title="BrowSDR"
+      src="https://jlx.brownsdr.com"
+      allow="autoplay; microphone; camera; fullscreen"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+    <div class="fallback" id="sdrFallback">
+      <h2>Console Live SDR</h2>
+      <p>
+        L’intégration iframe n’est pas disponible (blocage navigateur ou X-Frame-Options).
+        Utilise le build local <code>live_sdr_vendor/</code> s’il est présent, ou ouvre BrowSDR dans un nouvel onglet.
+      </p>
+      <a id="fallbackExternal" href="https://jlx.brownsdr.com" target="_blank" rel="noopener">Lancer BrowSDR</a>
+      <div class="note">Build local optionnel : lancer import-browsdr.sh / import-browsdr.ps1</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const frame = document.getElementById('sdrFrame');
+  const status = document.getElementById('sdrStatus');
+  const statusText = document.getElementById('sdrStatusText');
+  const fallback = document.getElementById('sdrFallback');
+  const btnReload = document.getElementById('btnReload');
+  const btnExternal = document.getElementById('btnExternal');
+  const fallbackExternal = document.getElementById('fallbackExternal');
+
+  const remoteUrl = 'https://jlx.brownsdr.com';
+  const localUrl = 'live_sdr_vendor/index.html';
+
+  function setStatus(mode, label) {
+    status.classList.remove('live', 'offline');
+    if (mode) status.classList.add(mode);
+    statusText.textContent = label;
+  }
+
+  function showFallback() {
+    fallback.classList.add('show');
+    setStatus('offline', 'HORS LIGNE / IFRAME BLOQUÉ');
+  }
+
+  function hideFallback() {
+    fallback.classList.remove('show');
+    setStatus('live', 'EN DIRECT');
+  }
+
+  // Prefer local vendor build when present
+  fetch(localUrl, { method: 'HEAD', cache: 'no-store' })
+    .then(function (res) {
+      if (res.ok) {
+        frame.src = localUrl;
+        btnExternal.href = localUrl;
+        fallbackExternal.href = localUrl;
+        setStatus('live', 'BUILD LOCAL');
+      }
+    })
+    .catch(function () { /* remote default already set */ });
+
+  let loaded = false;
+  frame.addEventListener('load', function () {
+    loaded = true;
+    // Cannot reliably read cross-origin content; assume OK unless timeout fired
+    if (!fallback.classList.contains('show')) {
+      setStatus('live', frame.src.indexOf('live_sdr_vendor') >= 0 ? 'BUILD LOCAL' : 'EN DIRECT');
+    }
+  });
+
+  // If iframe is blocked, load often never fires usefully — soft timeout
+  setTimeout(function () {
+    if (!loaded) {
+      // Keep remote attempt visible; only mark warning, not hard fail
+      setStatus('', 'CONNEXION…');
+    }
+  }, 4000);
+
+  // Hard fallback if user wants: detect empty after long wait
+  setTimeout(function () {
+    try {
+      // Same-origin only; cross-origin will throw — ignore
+      if (frame.contentDocument && frame.contentDocument.body && !frame.contentDocument.body.childElementCount) {
+        showFallback();
+      }
+    } catch (e) {
+      // Cross-origin: treat as probably working
+      if (!fallback.classList.contains('show')) setStatus('live', 'EN DIRECT');
+    }
+  }, 8000);
+
+  btnReload.addEventListener('click', function () {
+    hideFallback();
+    setStatus('', 'CHARGEMENT…');
+    const src = frame.src;
+    frame.src = 'about:blank';
+    setTimeout(function () { frame.src = src; }, 50);
+  });
+})();
+</script>
 </body>
 </html>
